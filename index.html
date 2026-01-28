@@ -196,9 +196,8 @@ let score=0, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
 let currentDragData = [];
 
 function getImgUrl(nr) {
-    const paddedNr = nr.toString().padStart(2, '0');
-    // Nutzt die stabilen Wikimedia PNGs (die oft Text enthalten)
-    return `https://upload.wikimedia.org/wikipedia/commons/9/9f/Sustainable_Development_Goal_${nr}.png`;
+    const padded = nr.toString().padStart(2, "0");
+    return `https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Sustainable_Development_Goals_Icons_Color_Goal_${padded}.png/512px-Sustainable_Development_Goals_Icons_Color_Goal_${padded}.png`;
 }
 
 function showMenu(){
