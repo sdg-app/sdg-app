@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SDG Master Quiz Web</title>
     <style>
         :root {
@@ -21,6 +21,7 @@
             margin: 0;
             display: flex;
             justify-content: center;
+            touch-action: manipulation; /* Verhindert ungewolltes Zoomen */
         }
 
         #app-container {
@@ -88,6 +89,7 @@
             font-weight: bold; font-size: 22px; color: white;
             border-radius: 8px; cursor: grab;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            touch-action: none; /* WICHTIG: Verhindert Scrollen beim Ziehen */
         }
 
         .action-btn {
@@ -99,27 +101,13 @@
 
         /* Karteikarten */
         .flashcard {
-            width: 300px; height: 400px; margin: 20px auto;
+            width: 100%; max-width: 300px; height: 400px; margin: 20px auto;
             background: white; color: black; border-radius: 15px;
             display: flex; justify-content: center; align-items: center;
-            text-align: center; cursor: pointer; padding: 15px;
+            text-align: center; cursor: pointer; padding: 10px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
         }
-        .flashcard img {
-            border-radius: 10px;
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Liste */
-        .list-row {
-            display: flex; background: var(--card-bg);
-            margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden;
-        }
-        .row-nr { width: 45px; height: 65px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
-        .row-img { width: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; }
-        .row-text { font-size: 13px; padding-right: 10px; }
+        .flashcard img { border-radius: 10px; width: 280px; height: auto; }
 
         .correct { background-color: var(--correct-green) !important; color: white !important; }
         .wrong { background-color: var(--wrong-red) !important; color: white !important; }
@@ -196,8 +184,8 @@ let score=0, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
 let currentDragData = [];
 
 function getImgUrl(nr) {
-    const padded = nr.toString().padStart(2, "0");
-    return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`;
+    const paddedNr = nr.toString().padStart(2, '0');
+    return `https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/SDG_Icon_${paddedNr}.png`;
 }
 
 function showMenu(){
@@ -241,7 +229,7 @@ function nextQuizQuestion(n){
     });
 }
 
-/* --- DRAG & DROP --- */
+/* --- DRAG & DROP MIT TOUCH SUPPORT --- */
 function startDragDrop(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("drag-screen").classList.add("active");
@@ -264,14 +252,13 @@ function loadDrag(){
         z.dataset.correctNr = s.nr;
         z.dataset.occupiedBy = "";
         z.innerText = s.titel;
+        
+        // PC Drag Over
         z.ondragover = e => e.preventDefault();
-        z.ondrop = e => {
-            const draggedNr = e.dataTransfer.getData("nr");
-            const draggedColor = e.dataTransfer.getData("color");
-            z.innerHTML = `<div class="drag-box" style="background:${draggedColor}">${draggedNr}</div><small style="margin-top:5px; display:block;">${s.titel}</small>`;
-            z.classList.add("filled");
-            z.dataset.occupiedBy = draggedNr;
-        };
+        
+        // PC Drop
+        z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
+        
         zones.appendChild(z);
     });
 
@@ -282,12 +269,58 @@ function loadDrag(){
         box.style.backgroundColor = s.farbe;
         box.innerText = s.nr;
         box.draggable = true;
+
+        // PC Drag Start
         box.ondragstart = e => {
             e.dataTransfer.setData("nr", s.nr);
             e.dataTransfer.setData("color", s.farbe);
         };
+
+        // --- TOUCH SUPPORT ---
+        box.addEventListener('touchstart', function(e) {
+            let touch = e.touches[0];
+            box.dataset.startX = touch.clientX;
+            box.dataset.startY = touch.clientY;
+            box.style.position = 'fixed';
+            box.style.zIndex = '1000';
+            updatePosition(box, touch);
+        }, {passive: false});
+
+        box.addEventListener('touchmove', function(e) {
+            e.preventDefault(); // Verhindert Scrollen
+            let touch = e.touches[0];
+            updatePosition(box, touch);
+        }, {passive: false});
+
+        box.addEventListener('touchend', function(e) {
+            box.style.display = 'none'; // Temporär ausblenden für elementFromPoint
+            let touch = e.changedTouches[0];
+            let target = document.elementFromPoint(touch.clientX, touch.clientY);
+            box.style.display = 'flex';
+            box.style.position = 'static';
+            
+            let zone = target ? target.closest('.drop-zone') : null;
+            if (zone) {
+                handleDrop(zone, s.nr, s.farbe);
+            }
+        });
+
         pool.appendChild(box);
     });
+}
+
+function updatePosition(el, touch) {
+    el.style.left = (touch.clientX - 25) + 'px';
+    el.style.top = (touch.clientY - 25) + 'px';
+}
+
+function handleDrop(zone, nr, color) {
+    const s = SDGS.find(item => item.nr == nr);
+    zone.innerHTML = `<div class="drag-box" style="background:${color}">${nr}</div><small style="margin-top:5px; display:block;">${zone.innerText.split('\n')[0]}</small>`;
+    zone.classList.add("filled");
+    zone.dataset.occupiedBy = nr;
+    const dragItem = document.getElementById("d" + nr);
+    if(dragItem) dragItem.remove();
 }
 
 function checkDragAssignments() {
@@ -319,8 +352,7 @@ function flipCard(){
     let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
     if(cardFront){ 
         c.style.background="white"; 
-        // Hier wurde der Text entfernt und das Icon vergrößert
-        c.innerHTML=`<img src="${getImgUrl(s.nr)}" style="width: 260px; height: auto;">`; 
+        c.innerHTML=`<img src="${getImgUrl(s.nr)}">`; 
     }
     else { updateCard(); } cardFront=!cardFront;
 }
