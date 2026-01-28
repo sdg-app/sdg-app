@@ -102,7 +102,14 @@
             width: 300px; height: 400px; margin: 20px auto;
             background: white; color: black; border-radius: 15px;
             display: flex; justify-content: center; align-items: center;
-            text-align: center; cursor: pointer; padding: 25px;
+            text-align: center; cursor: pointer; padding: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .flashcard img {
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
         }
 
         /* Liste */
@@ -190,7 +197,8 @@ let currentDragData = [];
 
 function getImgUrl(nr) {
     const paddedNr = nr.toString().padStart(2, '0');
-        return `https://upload.wikimedia.org/wikipedia/commons/9/9f/Sustainable_Development_Goal_${nr}.png`;
+    // Nutzt die stabilen Wikimedia PNGs (die oft Text enthalten)
+    return `https://upload.wikimedia.org/wikipedia/commons/9/9f/Sustainable_Development_Goal_${nr}.png`;
 }
 
 function showMenu(){
@@ -297,7 +305,7 @@ function checkDragAssignments() {
     document.getElementById("next-drag-btn").style.display = "block";
 }
 
-/* --- FLASHCARDS --- */
+/* --- KARTEIKARTEN --- */
 function startFlashcards(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("flashcard-screen").classList.add("active");
@@ -310,7 +318,11 @@ function updateCard(){
 }
 function flipCard(){
     let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
-    if(cardFront){ c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}" width="150"><br><h3 style="font-size:18px;">${s.titel}</h3>`; }
+    if(cardFront){ 
+        c.style.background="white"; 
+        // Hier wurde der Text entfernt und das Icon vergrößert
+        c.innerHTML=`<img src="${getImgUrl(s.nr)}" style="width: 260px; height: auto;">`; 
+    }
     else { updateCard(); } cardFront=!cardFront;
 }
 function nextCard(){ cardIdx=(cardIdx+1)%17; updateCard(); }
