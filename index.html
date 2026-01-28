@@ -21,7 +21,7 @@
             margin: 0;
             display: flex;
             justify-content: center;
-            touch-action: manipulation; /* Verhindert ungewolltes Zoomen */
+            touch-action: manipulation;
         }
 
         #app-container {
@@ -89,7 +89,7 @@
             font-weight: bold; font-size: 22px; color: white;
             border-radius: 8px; cursor: grab;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            touch-action: none; /* WICHTIG: Verhindert Scrollen beim Ziehen */
+            touch-action: none;
         }
 
         .action-btn {
@@ -108,6 +108,15 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
         .flashcard img { border-radius: 10px; width: 280px; height: auto; }
+
+        /* Tabelle / Liste (FIXED SIZE) */
+        .list-row {
+            display: flex; background: var(--card-bg);
+            margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden;
+        }
+        .row-nr { width: 45px; height: 60px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
+        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; object-fit: contain; }
+        .row-text { font-size: 13px; padding-right: 10px; flex-grow: 1; }
 
         .correct { background-color: var(--correct-green) !important; color: white !important; }
         .wrong { background-color: var(--wrong-red) !important; color: white !important; }
@@ -229,7 +238,7 @@ function nextQuizQuestion(n){
     });
 }
 
-/* --- DRAG & DROP MIT TOUCH SUPPORT --- */
+/* --- DRAG & DROP (TOUCH & PC) --- */
 function startDragDrop(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("drag-screen").classList.add("active");
@@ -252,13 +261,8 @@ function loadDrag(){
         z.dataset.correctNr = s.nr;
         z.dataset.occupiedBy = "";
         z.innerText = s.titel;
-        
-        // PC Drag Over
         z.ondragover = e => e.preventDefault();
-        
-        // PC Drop
         z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
-        
         zones.appendChild(z);
     });
 
@@ -270,13 +274,12 @@ function loadDrag(){
         box.innerText = s.nr;
         box.draggable = true;
 
-        // PC Drag Start
         box.ondragstart = e => {
             e.dataTransfer.setData("nr", s.nr);
             e.dataTransfer.setData("color", s.farbe);
         };
 
-        // --- TOUCH SUPPORT ---
+        // TOUCH HANDLING
         box.addEventListener('touchstart', function(e) {
             let touch = e.touches[0];
             box.dataset.startX = touch.clientX;
@@ -287,22 +290,19 @@ function loadDrag(){
         }, {passive: false});
 
         box.addEventListener('touchmove', function(e) {
-            e.preventDefault(); // Verhindert Scrollen
+            e.preventDefault();
             let touch = e.touches[0];
             updatePosition(box, touch);
         }, {passive: false});
 
         box.addEventListener('touchend', function(e) {
-            box.style.display = 'none'; // Temporär ausblenden für elementFromPoint
+            box.style.display = 'none';
             let touch = e.changedTouches[0];
             let target = document.elementFromPoint(touch.clientX, touch.clientY);
             box.style.display = 'flex';
             box.style.position = 'static';
-            
             let zone = target ? target.closest('.drop-zone') : null;
-            if (zone) {
-                handleDrop(zone, s.nr, s.farbe);
-            }
+            if (zone) handleDrop(zone, s.nr, s.farbe);
         });
 
         pool.appendChild(box);
@@ -315,7 +315,6 @@ function updatePosition(el, touch) {
 }
 
 function handleDrop(zone, nr, color) {
-    const s = SDGS.find(item => item.nr == nr);
     zone.innerHTML = `<div class="drag-box" style="background:${color}">${nr}</div><small style="margin-top:5px; display:block;">${zone.innerText.split('\n')[0]}</small>`;
     zone.classList.add("filled");
     zone.dataset.occupiedBy = nr;
@@ -327,11 +326,8 @@ function checkDragAssignments() {
     currentDragData.forEach((s, index) => {
         const zone = document.getElementById("zone-" + index);
         const occupied = zone.dataset.occupiedBy;
-        if (occupied == zone.dataset.correctNr) {
-            zone.classList.add("correct");
-        } else {
-            zone.classList.add("wrong");
-        }
+        if (occupied == zone.dataset.correctNr) zone.classList.add("correct");
+        else zone.classList.add("wrong");
     });
     document.getElementById("check-drag-btn").disabled = true;
     document.getElementById("next-drag-btn").style.display = "block";
@@ -353,8 +349,8 @@ function flipCard(){
     if(cardFront){ 
         c.style.background="white"; 
         c.innerHTML=`<img src="${getImgUrl(s.nr)}">`; 
-    }
-    else { updateCard(); } cardFront=!cardFront;
+    } else updateCard();
+    cardFront=!cardFront;
 }
 function nextCard(){ cardIdx=(cardIdx+1)%17; updateCard(); }
 function prevCard(){ cardIdx=(cardIdx+16)%17; updateCard(); }
