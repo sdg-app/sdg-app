@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDG Master Quiz Web</title>
+    <style>
+        :root {
+            --bg-dark: #2D2D2D;
+            --card-bg: #404040;
+            --accent: #FFD700;
+            --text-white: #ffffff;
+            --correct-green: #4C9F38;
+            --wrong-red: #E5243B;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 450px;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .screen { display: none; flex-direction: column; }
+        .active { display: flex; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+
+        /* Menü */
+        .menu-btn {
+            background-color: var(--card-bg);
+            margin: 10px 0; padding: 18px;
+            border-radius: 8px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* Quiz UI */
+        .sdg-display-box {
+            width: 100%; height: 180px;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 12px; margin-bottom: 30px;
+            font-size: 80px; font-weight: bold;
+        }
+        .sdg-display-box img { max-height: 140px; border-radius: 8px; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-btn {
+            background-color: var(--card-bg); border: none; color: white;
+            padding: 10px; border-radius: 6px; cursor: pointer; min-height: 90px;
+            font-size: 13px; display: flex; align-items: center; justify-content: center;
+            text-align: center; line-height: 1.2;
+        }
+
+        /* Drag & Drop */
+        .drop-zone-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .drop-zone {
+            background: var(--card-bg);
+            min-height: 130px;
+            border: 2px dashed #666;
+            border-radius: 8px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 10px; font-size: 12px;
+            transition: 0.3s; line-height: 1.3;
+        }
+        .drop-zone.filled { border-style: solid; border-color: transparent; }
+
+        .drag-items {
+            display: flex; justify-content: space-around;
+            padding: 15px; background: #333; border-radius: 8px;
+            min-height: 70px; margin-bottom: 20px;
+        }
+        .drag-box {
+            width: 55px; height: 55px;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 22px; color: white;
+            border-radius: 8px; cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .action-btn {
+            background-color: var(--accent); color: black;
+            border: none; padding: 15px; border-radius: 8px;
+            font-weight: bold; cursor: pointer; font-size: 16px;
+            margin-top: 10px; width: 100%;
+        }
+
+        /* Karteikarten */
+        .flashcard {
+            width: 300px; height: 400px; margin: 20px auto;
+            background: white; color: black; border-radius: 15px;
+            display: flex; justify-content: center; align-items: center;
+            text-align: center; cursor: pointer; padding: 25px;
+        }
+
+        /* Liste */
+        .list-row {
+            display: flex; background: var(--card-bg);
+            margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden;
+        }
+        .row-nr { width: 45px; height: 65px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
+        .row-img { width: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; }
+        .row-text { font-size: 13px; padding-right: 10px; }
+
+        .correct { background-color: var(--correct-green) !important; color: white !important; }
+        .wrong { background-color: var(--wrong-red) !important; color: white !important; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="menu-screen" class="screen active">
+        <h1 style="text-align:center">SDG LERN-APP</h1>
+        <div class="menu-btn" onclick="startQuiz(4)">Quiz (Einfach)</div>
+        <div class="menu-btn" onclick="startQuiz(6)">Quiz (Schwer)</div>
+        <div class="menu-btn" onclick="startQuiz(4,true)">1 Minute Challenge</div>
+        <div class="menu-btn" onclick="startDragDrop()">Ziehen & Ablegen</div>
+        <div class="menu-btn" onclick="startFlashcards()">Karteikarten</div>
+        <div class="menu-btn" onclick="showTable()">Tabelle</div>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">←</button>
+            <span id="timer-label"></span>
+            <span id="score-label">Punkte: 0</span>
+        </div>
+        <div id="quiz-display" class="sdg-display-box"></div>
+        <div id="quiz-options" class="options-grid"></div>
+    </div>
+
+    <div id="drag-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Zuordnung prüfen</span></div>
+        <div id="drop-zones" class="drop-zone-container"></div>
+        <div id="drag-pool" class="drag-items"></div>
+        <button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Überprüfen</button>
+        <button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button>
+    </div>
+
+    <div id="flashcard-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="card-progress"></span></div>
+        <div id="main-card" class="flashcard" onclick="flipCard()"></div>
+        <div style="display:flex; justify-content: space-around; margin-top: 20px;">
+            <button class="option-btn" onclick="prevCard()" style="min-height: auto; width: 45%;">←</button>
+            <button class="option-btn" onclick="nextCard()" style="min-height: auto; width: 45%;">→</button>
+        </div>
+    </div>
+
+    <div id="table-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button></div>
+        <div id="table-content"></div>
+    </div>
+</div>
+
+<script>
+const SDGS = [
+    {nr: 1, farbe: "#E5243B", titel: "Keine Armut"},
+    {nr: 2, farbe: "#DDA63A", titel: "Kein Hunger"},
+    {nr: 3, farbe: "#4C9F38", titel: "Gesundheit und Wohlergehen"},
+    {nr: 4, farbe: "#C5192D", titel: "Hochwertige Bildung"},
+    {nr: 5, farbe: "#FF3A21", titel: "Geschlechtergleichstellung"},
+    {nr: 6, farbe: "#26BDE2", titel: "Sauberes Wasser und Sanitäreinrichtungen"},
+    {nr: 7, farbe: "#FCC30B", titel: "Bezahlbare und saubere Energie"},
+    {nr: 8, farbe: "#A21942", titel: "Menschenwürdige Arbeit und Wirtschaftswachstum"},
+    {nr: 9, farbe: "#FD6925", titel: "Industrie, Innovation und Infrastruktur"},
+    {nr: 10, farbe: "#DD1367", titel: "Weniger Ungleichheiten"},
+    {nr: 11, farbe: "#FD9D24", titel: "Nachhaltige Städte und Gemeinden"},
+    {nr: 12, farbe: "#BF8B2E", titel: "Nachhaltige/r Konsum und Produktion"},
+    {nr: 13, farbe: "#3F7E44", titel: "Maßnahmen zum Klimaschutz"},
+    {nr: 14, farbe: "#0A97D9", titel: "Leben unter Wasser"},
+    {nr: 15, farbe: "#56C02B", titel: "Leben an Land"},
+    {nr: 16, farbe: "#00689D", titel: "Frieden, Gerechtigkeit und starke Institutionen"},
+    {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
+];
+
+let score=0, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
+let currentDragData = [];
+
+function getImgUrl(nr) {
+    return `https://sdgs.un.org/sites/default/files/goals/E_SDG_Icons-${nr.toString().padStart(2, "0")}.jpg`;
+}
+
+function showMenu(){
+    clearInterval(timer);
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("menu-screen").classList.add("active");
+}
+
+/* --- QUIZ --- */
+function startQuiz(n, timed=false){
+    score=0; document.getElementById("score-label").innerText="Punkte: 0";
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("quiz-screen").classList.add("active");
+    if(timed){
+        let t=60; document.getElementById("timer-label").innerText=`Zeit: ${t}`;
+        timer=setInterval(()=>{ t--; document.getElementById("timer-label").innerText=`Zeit: ${t}`;
+        if(t<=0){ alert("Zeit abgelaufen!"); showMenu(); }},1000);
+    } else document.getElementById("timer-label").innerText="";
+    nextQuizQuestion(n);
+}
+
+function nextQuizQuestion(n){
+    currentSdg = SDGS[Math.floor(Math.random()*17)];
+    const d = document.getElementById("quiz-display");
+    d.style.background = currentSdg.farbe; d.innerHTML = `<span>${currentSdg.nr}</span>`;
+    let opts = [currentSdg.titel];
+    while(opts.length < n){
+        let r = SDGS[Math.floor(Math.random()*17)].titel;
+        if(!opts.includes(r)) opts.push(r);
+    }
+    const grid = document.getElementById("quiz-options"); grid.innerHTML = "";
+    opts.sort(()=>Math.random()-0.5).forEach(o=>{
+        let b = document.createElement("button"); b.className="option-btn"; b.innerText=o;
+        b.onclick = () => {
+            const correct = o === currentSdg.titel;
+            b.classList.add(correct ? "correct" : "wrong");
+            if(correct) { score++; document.getElementById("score-label").innerText="Punkte: "+score; }
+            setTimeout(()=>nextQuizQuestion(n), 1000);
+        };
+        grid.appendChild(b);
+    });
+}
+
+/* --- DRAG & DROP --- */
+function startDragDrop(){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("drag-screen").classList.add("active");
+    loadDrag();
+}
+
+function loadDrag(){
+    currentDragData = [...SDGS].sort(()=>Math.random()-0.5).slice(0,4);
+    const zones = document.getElementById("drop-zones");
+    const pool = document.getElementById("drag-pool");
+    zones.innerHTML = ""; pool.innerHTML = "";
+    document.getElementById("check-drag-btn").style.display = "block";
+    document.getElementById("check-drag-btn").disabled = false;
+    document.getElementById("next-drag-btn").style.display = "none";
+
+    currentDragData.forEach((s, index) => {
+        let z = document.createElement("div");
+        z.className = "drop-zone";
+        z.id = "zone-" + index;
+        z.dataset.correctNr = s.nr;
+        z.dataset.occupiedBy = "";
+        z.innerText = s.titel;
+        z.ondragover = e => e.preventDefault();
+        z.ondrop = e => {
+            const draggedNr = e.dataTransfer.getData("nr");
+            const draggedColor = e.dataTransfer.getData("color");
+            z.innerHTML = `<div class="drag-box" style="background:${draggedColor}">${draggedNr}</div><small style="margin-top:5px; display:block;">${s.titel}</small>`;
+            z.classList.add("filled");
+            z.dataset.occupiedBy = draggedNr;
+        };
+        zones.appendChild(z);
+    });
+
+    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
+        let box = document.createElement("div");
+        box.id = "d" + s.nr;
+        box.className = "drag-box";
+        box.style.backgroundColor = s.farbe;
+        box.innerText = s.nr;
+        box.draggable = true;
+        box.ondragstart = e => {
+            e.dataTransfer.setData("nr", s.nr);
+            e.dataTransfer.setData("color", s.farbe);
+        };
+        pool.appendChild(box);
+    });
+}
+
+function checkDragAssignments() {
+    currentDragData.forEach((s, index) => {
+        const zone = document.getElementById("zone-" + index);
+        const occupied = zone.dataset.occupiedBy;
+        if (occupied == zone.dataset.correctNr) {
+            zone.classList.add("correct");
+        } else {
+            zone.classList.add("wrong");
+        }
+    });
+    document.getElementById("check-drag-btn").disabled = true;
+    document.getElementById("next-drag-btn").style.display = "block";
+}
+
+/* --- FLASHCARDS --- */
+function startFlashcards(){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("flashcard-screen").classList.add("active");
+    cardIdx=0; updateCard();
+}
+function updateCard(){
+    let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
+    c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`;
+    document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`; cardFront=true;
+}
+function flipCard(){
+    let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
+    if(cardFront){ c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}" width="150"><br><h3 style="font-size:18px;">${s.titel}</h3>`; }
+    else { updateCard(); } cardFront=!cardFront;
+}
+function nextCard(){ cardIdx=(cardIdx+1)%17; updateCard(); }
+function prevCard(){ cardIdx=(cardIdx+16)%17; updateCard(); }
+
+/* --- TABELLE --- */
+function showTable(){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("table-screen").classList.add("active");
+    const cont = document.getElementById("table-content"); cont.innerHTML = "";
+    SDGS.forEach(s=>{
+        const row = document.createElement("div"); row.className="list-row";
+        row.innerHTML=`<div class="row-nr" style="background:${s.farbe}">${s.nr}</div><img src="${getImgUrl(s.nr)}" class="row-img"><div class="row-text">${s.titel}</div>`;
+        cont.appendChild(row);
+    });
+}
+</script>
+</body>
+</html>
