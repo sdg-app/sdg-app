@@ -184,9 +184,9 @@ let score=0, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
 let currentDragData = [];
 
 function getImgUrl(nr) {
-    const paddedNr = nr.toString().padStart(2, '0');
-    return `https://commons.wikimedia.org/w/index.php?title=Special:Redirect/file/SDG_Icon_${paddedNr}.png`;
-}
+    const padded = nr.toString().padStart(2, "0");
+    return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`;
+    {
 
 function showMenu(){
     clearInterval(timer);
