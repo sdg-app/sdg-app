@@ -135,9 +135,10 @@
         <div class="menu-btn" onclick="showTable()">Tabelle</div>
     </div>
 
-    <div id="quiz-screen" class="screen">
+<div id="quiz-screen" class="screen">
         <div class="top-bar">
             <button class="back-btn" onclick="showMenu()">←</button>
+            <span id="lives-label" style="font-size:20px;">❤️❤️❤️</span>
             <span id="timer-label"></span>
             <span id="score-label">Punkte: 0</span>
         </div>
@@ -189,7 +190,7 @@ const SDGS = [
     {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
 ];
 
-let score=0, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
+let score=0, lives=3, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
 let currentDragData = [];
 
 function getImgUrl(nr) {
@@ -203,48 +204,170 @@ function showMenu(){
     document.getElementById("menu-screen").classList.add("active");
 }
 
-/* --- QUIZ --- */
+/* --- LEBENSANZEIGE UPDATE --- */
+function updateLivesDisplay() {
+    let hearts = "";
+    for(let i=0; i<lives; i++) hearts += "❤️";
+    for(let i=lives; i<3; i++) hearts += "🖤"; // Optional: Leere Herzen anzeigen
+    document.getElementById("lives-label").innerText = hearts;
+}
+
+/* --- QUIZ LOGIK (MIT HERZEN) --- */
 function startQuiz(n, timed=false){
-    score=0; document.getElementById("score-label").innerText="Punkte: 0";
+    score=0; 
+    lives=3; // Start mit 3 Leben
+    document.getElementById("score-label").innerText="Punkte: 0";
+    updateLivesDisplay();
+
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("quiz-screen").classList.add("active");
+    
     if(timed){
         let t=60; document.getElementById("timer-label").innerText=`Zeit: ${t}`;
         timer=setInterval(()=>{ t--; document.getElementById("timer-label").innerText=`Zeit: ${t}`;
         if(t<=0){ alert("Zeit abgelaufen!"); showMenu(); }},1000);
     } else document.getElementById("timer-label").innerText="";
+    
     nextQuizQuestion(n);
 }
 
 function nextQuizQuestion(n){
     currentSdg = SDGS[Math.floor(Math.random()*17)];
-    const d = document.getElementById("quiz-display");
-    d.style.background = currentSdg.farbe; d.innerHTML = `<span>${currentSdg.nr}</span>`;
-    let opts = [currentSdg.titel];
-    while(opts.length < n){
-        let r = SDGS[Math.floor(Math.random()*17)].titel;
-        if(!opts.includes(r)) opts.push(r);
+    const display = document.getElementById("quiz-display");
+    const grid = document.getElementById("quiz-options");
+    
+    // MODUS BESTIMMUNG (Einfach vs Schwer)
+    let mode = 0; 
+    if (n > 4) {
+        mode = Math.floor(Math.random() * 3) + 1; 
     }
-    const grid = document.getElementById("quiz-options"); grid.innerHTML = "";
+
+    // DISPLAY SETUP
+    display.style.background = "var(--card-bg)";
+    display.style.color = "white";
+    display.style.fontSize = "80px";
+    display.innerHTML = "";
+
+    if (mode === 0) { // Standard
+        display.style.background = currentSdg.farbe; 
+        display.innerHTML = `<span>${currentSdg.nr}</span>`;
+    } 
+    else if (mode === 1) { // Nur Farbe
+        display.style.background = currentSdg.farbe;
+        display.innerHTML = `<span>?</span>`;
+    } 
+    else if (mode === 2) { // Nur Zahl
+        display.style.background = "#555"; 
+        display.innerHTML = `<span>${currentSdg.nr}</span>`;
+    } 
+    else if (mode === 3) { // Nur Text
+        display.style.background = "#222";
+        display.style.fontSize = "24px";
+        display.style.padding = "20px";
+        display.style.textAlign = "center";
+        display.innerText = currentSdg.titel;
+    }
+
+    // OPTIONEN GENERIEREN
+    let opts = [currentSdg];
+    while(opts.length < n){
+        let r = SDGS[Math.floor(Math.random()*17)];
+        if(!opts.find(o => o.nr === r.nr)) opts.push(r);
+    }
+    
+    grid.innerHTML = "";
     opts.sort(()=>Math.random()-0.5).forEach(o=>{
-        let b = document.createElement("button"); b.className="option-btn"; b.innerText=o;
+        let b = document.createElement("button"); 
+        b.className="option-btn"; 
+        b.dataset.nr = o.nr; // Wichtig für das Finden der Lösung
+
+        if (mode === 3) {
+            b.innerText = o.nr;
+            b.style.backgroundColor = o.farbe;
+            b.style.fontSize = "40px";
+            b.style.fontWeight = "bold";
+        } else {
+            b.innerText = o.titel;
+            b.style.backgroundColor = "var(--card-bg)";
+            b.style.fontSize = "13px";
+        }
+
         b.onclick = () => {
-            const correct = o === currentSdg.titel;
-            b.classList.add(correct ? "correct" : "wrong");
-            if(correct) { score++; document.getElementById("score-label").innerText="Punkte: "+score; }
-            setTimeout(()=>nextQuizQuestion(n), 1000);
+            const isCorrect = o.nr === currentSdg.nr;
+            
+            if (isCorrect) {
+                // --- RICHTIG ---
+                // 1. Visuelles Feedback
+                if (mode === 3) {
+                    b.style.border = "4px solid white";
+                    b.style.opacity = "1";
+                } else {
+                    b.classList.add("correct");
+                }
+                
+                // 2. Alle Buttons sperren (damit man nicht mehr klicken kann)
+                const allButtons = grid.querySelectorAll("button");
+                allButtons.forEach(btn => btn.disabled = true);
+
+                // 3. Score hoch & Nächste Frage
+                score++;
+                document.getElementById("score-label").innerText="Punkte: "+score;
+                setTimeout(()=>nextQuizQuestion(n), 1500);
+
+            } else {
+                // --- FALSCH ---
+                // 1. Leben abziehen
+                lives--;
+                updateLivesDisplay();
+
+                // 2. Button als falsch markieren und DEAKTIVIEREN
+                b.disabled = true; // Dieser Button kann nicht mehr geklickt werden
+                
+                if (mode === 3) {
+                    b.style.opacity = "0.2";
+                    b.style.border = "4px solid black";
+                } else {
+                    b.classList.add("wrong");
+                }
+
+                // 3. PRÜFEN OB GAME OVER
+                if (lives <= 0) {
+                    // Alle Herzen weg -> Lösung zeigen & Ende
+                    const allButtons = grid.querySelectorAll("button");
+                    const correctBtn = Array.from(allButtons).find(btn => parseInt(btn.dataset.nr) === currentSdg.nr);
+                    
+                    if (correctBtn) {
+                        if (mode === 3) {
+                            correctBtn.style.border = "4px solid white";
+                            correctBtn.style.transform = "scale(1.1)";
+                        } else {
+                            correctBtn.classList.add("correct");
+                        }
+                    }
+
+                    // Alle Buttons sperren
+                    allButtons.forEach(btn => btn.disabled = true);
+
+                    // Kurz warten, dann Alert und Menü
+                    setTimeout(() => {
+                        alert("Spiel vorbei! Keine Herzen mehr.\nDein Score: " + score);
+                        showMenu();
+                    }, 2000);
+                }
+                // Wenn lives > 0 passiert hier nichts weiter: 
+                // Der Spieler bleibt auf der Seite und muss einen anderen Button klicken.
+            }
         };
         grid.appendChild(b);
     });
 }
 
-/* --- DRAG & DROP (TOUCH & PC) --- */
+/* --- DRAG & DROP (unverändert) --- */
 function startDragDrop(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("drag-screen").classList.add("active");
     loadDrag();
 }
-
 function loadDrag(){
     currentDragData = [...SDGS].sort(()=>Math.random()-0.5).slice(0,4);
     const zones = document.getElementById("drop-zones");
@@ -253,7 +376,6 @@ function loadDrag(){
     document.getElementById("check-drag-btn").style.display = "block";
     document.getElementById("check-drag-btn").disabled = false;
     document.getElementById("next-drag-btn").style.display = "none";
-
     currentDragData.forEach((s, index) => {
         let z = document.createElement("div");
         z.className = "drop-zone";
@@ -265,7 +387,6 @@ function loadDrag(){
         z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
         zones.appendChild(z);
     });
-
     [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
         let box = document.createElement("div");
         box.id = "d" + s.nr;
@@ -273,13 +394,10 @@ function loadDrag(){
         box.style.backgroundColor = s.farbe;
         box.innerText = s.nr;
         box.draggable = true;
-
         box.ondragstart = e => {
             e.dataTransfer.setData("nr", s.nr);
             e.dataTransfer.setData("color", s.farbe);
         };
-
-        // TOUCH HANDLING
         box.addEventListener('touchstart', function(e) {
             let touch = e.touches[0];
             box.dataset.startX = touch.clientX;
@@ -288,13 +406,11 @@ function loadDrag(){
             box.style.zIndex = '1000';
             updatePosition(box, touch);
         }, {passive: false});
-
         box.addEventListener('touchmove', function(e) {
             e.preventDefault();
             let touch = e.touches[0];
             updatePosition(box, touch);
         }, {passive: false});
-
         box.addEventListener('touchend', function(e) {
             box.style.display = 'none';
             let touch = e.changedTouches[0];
@@ -304,16 +420,13 @@ function loadDrag(){
             let zone = target ? target.closest('.drop-zone') : null;
             if (zone) handleDrop(zone, s.nr, s.farbe);
         });
-
         pool.appendChild(box);
     });
 }
-
 function updatePosition(el, touch) {
     el.style.left = (touch.clientX - 25) + 'px';
     el.style.top = (touch.clientY - 25) + 'px';
 }
-
 function handleDrop(zone, nr, color) {
     zone.innerHTML = `<div class="drag-box" style="background:${color}">${nr}</div><small style="margin-top:5px; display:block;">${zone.innerText.split('\n')[0]}</small>`;
     zone.classList.add("filled");
@@ -321,7 +434,6 @@ function handleDrop(zone, nr, color) {
     const dragItem = document.getElementById("d" + nr);
     if(dragItem) dragItem.remove();
 }
-
 function checkDragAssignments() {
     currentDragData.forEach((s, index) => {
         const zone = document.getElementById("zone-" + index);
@@ -333,7 +445,7 @@ function checkDragAssignments() {
     document.getElementById("next-drag-btn").style.display = "block";
 }
 
-/* --- KARTEIKARTEN --- */
+/* --- KARTEIKARTEN (unverändert) --- */
 function startFlashcards(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("flashcard-screen").classList.add("active");
@@ -355,7 +467,7 @@ function flipCard(){
 function nextCard(){ cardIdx=(cardIdx+1)%17; updateCard(); }
 function prevCard(){ cardIdx=(cardIdx+16)%17; updateCard(); }
 
-/* --- TABELLE --- */
+/* --- TABELLE (unverändert) --- */
 function showTable(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("table-screen").classList.add("active");
