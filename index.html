@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SDG Master - Ultimate Edition</title>
+    <title>SDG Master - Final Version</title>
     <style>
         :root {
             --bg-dark: #2D2D2D;
@@ -24,6 +24,7 @@
             justify-content: center;
             touch-action: manipulation;
             user-select: none;
+            overflow-x: hidden;
         }
 
         #app-container {
@@ -50,7 +51,6 @@
             border-radius: 8px; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center;
             transition: transform 0.1s;
-            position: relative;
         }
         .menu-btn:active { transform: scale(0.98); }
         .achievement-star { font-size: 24px; color: #555; transition: color 0.3s; }
@@ -87,11 +87,6 @@
         .go-title { font-size: 32px; color: var(--wrong-red); margin-bottom: 20px; font-weight: bold; }
         .go-stats { margin-bottom: 30px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
         .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 18px; }
-        
-        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; }
-        .lb-header { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-        .lb-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #555; color: #888; }
-        .lb-row.highlight { color: var(--accent); font-weight: bold; border-color: var(--accent); }
 
         .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
         .btn-continue { background: var(--accent); color: black; }
@@ -104,17 +99,27 @@
             background: var(--card-bg); min-height: 130px; border: 2px dashed #666; 
             border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
             justify-content: center; text-align: center; padding: 10px; font-size: 12px; position: relative;
+            transition: background 0.2s;
         }
-        .drop-zone.filled { border-style: solid; border-color: transparent; cursor: pointer; }
-        /* Kleines Icon um zu zeigen, dass man es entfernen kann */
-        .drop-zone.filled::after { content: "⇄"; position: absolute; top: 2px; right: 5px; font-size: 16px; color: #fff; opacity: 0.5; }
+        .drop-zone.filled { border-style: solid; border-color: transparent; }
+        
+        /* Shake Animation für Fehler */
+        @keyframes shake {
+            0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); }
+        }
+        .shake-it { animation: shake 0.4s; border-color: var(--wrong-red) !important; }
 
         .drag-items { display: flex; justify-content: space-around; padding: 15px; background: #333; border-radius: 8px; min-height: 70px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        
+        /* Drag Box Style */
         .drag-box { 
             width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; 
             font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0; z-index: 10;
         }
+        /* Wenn Drag Box im Drop-Zone ist, muss sie wieder greifbar sein */
+        .drop-zone .drag-box { pointer-events: auto; cursor: grab; }
+
         .action-btn { background-color: var(--accent); color: black; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
 
         .correct { background-color: var(--correct-green) !important; color: white !important; }
@@ -160,7 +165,8 @@
         
         <div style="border-top:1px solid #555; margin:10px 0;"></div>
 
-        <div class="menu-btn" onclick="startFlashcards()">Karteikarten</div>
+        <div class="menu-btn" onclick="startFlashcards(false)">Karteikarten (1-17)</div>
+        <div class="menu-btn" onclick="startFlashcards(true)">Karteikarten (Zufall)</div>
         <div class="menu-btn" onclick="showTable()">Tabelle lernen</div>
     </div>
 
@@ -184,6 +190,7 @@
         </div>
         <div id="drop-zones" class="drop-zone-container"></div>
         <div id="drag-pool" class="drag-items"></div>
+        
         <button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button>
         <button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button>
     </div>
@@ -193,15 +200,7 @@
         
         <div class="go-stats">
             <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
-            <div class="stat-row"><span>Highscore (<span id="go-mode-name" style="font-size:14px; color:#aaa;">Modus</span>):</span> <span id="go-best" style="color:var(--accent)">0</span></div>
-        </div>
-
-        <div class="leaderboard">
-            <div class="lb-header">
-                <span>Platzierung</span>
-                <span>Punkte</span>
-            </div>
-            <div id="leaderboard-content"></div>
+            <div class="stat-row"><span>Highscore:</span> <span id="go-best" style="color:var(--accent)">0</span></div>
         </div>
 
         <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
@@ -246,23 +245,15 @@ const SDGS = [
     {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
 ];
 
-/* STATE MANAGEMENT MIT MEHREREN HIGHSCORES */
+/* STATE MANAGEMENT */
 let playerStats = {
     coins: 0,
-    scores: {
-        quiz_easy: 0,
-        quiz_hard: 0,
-        drag: 0
-    }
+    scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 }
 };
 
-// Laden und Migrieren von alten Daten
 if(localStorage.getItem("sdgAppData")) {
     let data = JSON.parse(localStorage.getItem("sdgAppData"));
-    // Falls alte Datenstruktur, konvertieren
-    if(!data.scores) {
-        data.scores = { quiz_easy: data.highScore || 0, quiz_hard: 0, drag: 0 };
-    }
+    if(!data.scores) data.scores = { quiz_easy: data.highScore || 0, quiz_hard: 0, drag: 0 };
     playerStats = data;
 }
 
@@ -276,7 +267,6 @@ function updateUIStats() {
     document.getElementById("ingame-coins-quiz").innerText = playerStats.coins;
     document.getElementById("ingame-coins-drag").innerText = playerStats.coins;
     
-    // Sterne Update (80 Punkte Threshold)
     updateStar("star-quiz-easy", playerStats.scores.quiz_easy);
     updateStar("star-quiz-hard", playerStats.scores.quiz_hard);
     updateStar("star-drag", playerStats.scores.drag);
@@ -284,16 +274,23 @@ function updateUIStats() {
 
 function updateStar(id, score) {
     const el = document.getElementById(id);
-    if(score >= 80) {
-        el.innerText = "★";
-        el.classList.add("unlocked");
-    } else {
-        el.innerText = "☆";
-        el.classList.remove("unlocked");
-    }
+    if(score >= 80) { el.innerText = "★"; el.classList.add("unlocked"); } 
+    else { el.innerText = "☆"; el.classList.remove("unlocked"); }
 }
 
 updateUIStats();
+
+/* DECK SYSTEM FÜR ZUFÄLLIGKEIT (Keine Dopplungen) */
+let masterDeck = [];
+
+function resetDeck() {
+    masterDeck = [...SDGS].sort(() => Math.random() - 0.5);
+}
+
+function drawCard() {
+    if(masterDeck.length === 0) resetDeck();
+    return masterDeck.pop();
+}
 
 let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy"; 
 let continueCost = 10;
@@ -321,8 +318,9 @@ function updateLivesDisplay() {
 /* --- QUIZ --- */
 function startQuiz(n){
     quizModeN = n;
-    currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; // Key setzen
+    currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy";
     score = 0; lives = 3;
+    resetDeck(); // Neues Deck beim Start
     document.getElementById("score-label").innerText = score;
     updateLivesDisplay();
     
@@ -333,7 +331,7 @@ function startQuiz(n){
 }
 
 function nextQuizQuestion(){
-    currentSdg = SDGS[Math.floor(Math.random()*17)];
+    currentSdg = drawCard(); // Ziehe aus Deck statt Random
     const display = document.getElementById("quiz-display");
     const grid = document.getElementById("quiz-options");
     let mode = 0; if (quizModeN > 4) mode = Math.floor(Math.random() * 3) + 1; 
@@ -383,23 +381,33 @@ function nextQuizQuestion(){
     });
 }
 
-/* --- DRAG & DROP GAME MODE (Optimiert) --- */
+/* --- DRAG & DROP GAME MODE (Mit Drag-Away & No-Popup) --- */
 let currentDragData = [];
 
 function startDragDrop(){
     currentModeKey = "drag";
     score = 0; lives = 3;
+    resetDeck(); 
     document.getElementById("score-label-drag").innerText = score;
     updateLivesDisplay();
 
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("game-over-screen").classList.remove("active");
     document.getElementById("drag-screen").classList.add("active");
+    
+    // Pool auch als Dropzone definieren (zum Zurücklegen)
+    const pool = document.getElementById("drag-pool");
+    pool.ondragover = e => e.preventDefault();
+    pool.ondrop = e => handleDropOnPool(e);
+
     loadDrag();
 }
 
 function loadDrag(){
-    currentDragData = [...SDGS].sort(()=>Math.random()-0.5).slice(0,4);
+    // Ziehe 4 einzigartige aus dem Deck
+    currentDragData = [];
+    for(let i=0; i<4; i++) currentDragData.push(drawCard());
+    
     const zones = document.getElementById("drop-zones");
     const pool = document.getElementById("drag-pool");
     zones.innerHTML = ""; pool.innerHTML = "";
@@ -417,13 +425,6 @@ function loadDrag(){
         z.dataset.occupiedBy = "";
         z.innerText = s.titel;
         
-        // Klick entfernt Item wieder
-        z.onclick = () => {
-            if(z.classList.contains("filled") && !z.classList.contains("correct") && !z.classList.contains("wrong")) {
-                ejectItemFromZone(z);
-            }
-        };
-
         z.ondragover = e => e.preventDefault();
         z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
         zones.appendChild(z);
@@ -431,24 +432,16 @@ function loadDrag(){
 
     // Draggables erstellen
     [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
-        createDragItem(s.nr, s.farbe);
+        createDragItem(s.nr, s.farbe, "pool");
     });
 }
 
-// Hilfsfunktion: Wirft Item aus Zone zurück in den Pool
-function ejectItemFromZone(zone) {
-    let nr = zone.dataset.occupiedBy;
-    let color = zone.dataset.color;
-    // Zone reset
-    zone.innerText = zone.dataset.originalText || zone.innerText.split('\n')[1] || zone.innerText; // Fallback für Text
-    zone.classList.remove("filled");
-    zone.dataset.occupiedBy = "";
-    // Zurück in Pool
-    createDragItem(nr, color);
-}
+function createDragItem(nr, color, origin) {
+    let container = origin === "pool" ? document.getElementById("drag-pool") : document.getElementById(origin);
+    
+    // Check if item already exists to avoid dupes
+    if(document.getElementById("d"+nr)) return;
 
-function createDragItem(nr, color) {
-    let pool = document.getElementById("drag-pool");
     let box = document.createElement("div");
     box.id = "d" + nr;
     box.className = "drag-box";
@@ -456,50 +449,117 @@ function createDragItem(nr, color) {
     box.innerText = nr;
     box.draggable = true;
     
+    // Drag Start Logik
     box.ondragstart = e => {
         e.dataTransfer.setData("nr", nr);
         e.dataTransfer.setData("color", color);
+        // Wir merken uns, woher das Item kommt (pool oder zone-id)
+        let parentZone = box.closest(".drop-zone");
+        e.dataTransfer.setData("sourceId", parentZone ? parentZone.id : "pool");
     };
 
-    // Touch Support
+    // Touch Support (Mobil)
     box.addEventListener('touchstart', function(e) {
         let touch = e.touches[0]; box.dataset.startX = touch.clientX; box.dataset.startY = touch.clientY;
+        
+        // Merken woher wir kommen
+        let parentZone = box.closest(".drop-zone");
+        box.dataset.sourceId = parentZone ? parentZone.id : "pool";
+
         box.style.position = 'fixed'; box.style.zIndex = '1000'; updatePosition(box, touch);
     }, {passive: false});
+
     box.addEventListener('touchmove', function(e) { e.preventDefault(); updatePosition(box, e.touches[0]); }, {passive: false});
+    
     box.addEventListener('touchend', function(e) {
-        box.style.display = 'none'; let touch = e.changedTouches[0]; let target = document.elementFromPoint(touch.clientX, touch.clientY);
-        box.style.display = 'flex'; box.style.position = 'static'; let zone = target ? target.closest('.drop-zone') : null;
+        box.style.display = 'none'; 
+        let touch = e.changedTouches[0]; 
+        let target = document.elementFromPoint(touch.clientX, touch.clientY);
+        box.style.display = 'flex'; box.style.position = 'static'; 
+        
+        // Ziel finden
+        let zone = target ? target.closest('.drop-zone') : null;
+        let pool = target ? target.closest('#drag-pool') : null;
+
         if (zone) handleDrop(zone, nr, color);
+        else if (pool) handleDropOnPool({ preventDefault: ()=>{}, dataTransfer: { getData: (k)=> (k==="nr"?nr:(k==="color"?color:box.dataset.sourceId)) } }, true);
+        else {
+            // Nirgendwo gelandet -> Reset Position
+            box.style.position = 'static';
+        }
     });
 
-    pool.appendChild(box);
+    if(container) container.appendChild(box);
 }
 
 function updatePosition(el, touch) { el.style.left = (touch.clientX - 25) + 'px'; el.style.top = (touch.clientY - 25) + 'px'; }
 
+// Logik wenn etwas in den Pool zurückgezogen wird
+function handleDropOnPool(e, isTouch=false) {
+    e.preventDefault();
+    let nr = isTouch ? e.dataTransfer.getData("nr") : e.dataTransfer.getData("nr");
+    let color = isTouch ? e.dataTransfer.getData("color") : e.dataTransfer.getData("color");
+    let sourceId = isTouch ? e.dataTransfer.getData("sourceId") : e.dataTransfer.getData("sourceId"); // "pool" oder "zone-X"
+
+    if(sourceId !== "pool") {
+        // Item kam aus einer Zone -> Zone leeren
+        let sourceZone = document.getElementById(sourceId);
+        if(sourceZone) {
+            sourceZone.classList.remove("filled");
+            sourceZone.dataset.occupiedBy = "";
+            sourceZone.innerText = sourceZone.dataset.originalText || sourceZone.innerText.split('\n')[1] || sourceZone.innerText;
+        }
+        
+        // Altes Element entfernen
+        let oldEl = document.getElementById("d" + nr);
+        if(oldEl) oldEl.remove();
+
+        // Neues im Pool erstellen
+        createDragItem(nr, color, "pool");
+    }
+}
+
 function handleDrop(zone, nr, color) {
-    // SPEZIAL-FEATURE: AUTO-REPLACE (TAUSCHEN)
-    // Wenn Zone voll ist, wirf das alte Item raus und nimm das neue an
+    // 1. Wenn Zone schon voll ist -> Tauschen (Altes in Pool)
     if(zone.classList.contains("filled")) {
-        // Erstes merken, was drin war
         let oldNr = zone.dataset.occupiedBy;
         let oldColor = zone.dataset.color;
-        
-        // Altes Item zurück in den Pool werfen
-        createDragItem(oldNr, oldColor);
+        // Altes Element im DOM entfernen (war in Zone)
+        let oldEl = document.getElementById("d" + oldNr);
+        if(oldEl) oldEl.remove();
+        // Zurück in Pool
+        createDragItem(oldNr, oldColor, "pool");
     }
 
-    // Jetzt das neue Item platzieren
-    zone.dataset.originalText = zone.innerText; // Text sichern
-    zone.innerHTML = `<div class="drag-box" style="background:${color}; pointer-events:none;">${nr}</div><small style="margin-top:5px; pointer-events:none;">${zone.innerText}</small>`;
+    // 2. Quelle des neuen Items bereinigen (falls es aus anderer Zone kam)
+    let dragItem = document.getElementById("d" + nr);
+    if(dragItem) {
+        let parentZone = dragItem.closest(".drop-zone");
+        if(parentZone) {
+            parentZone.classList.remove("filled");
+            parentZone.dataset.occupiedBy = "";
+            parentZone.innerText = parentZone.dataset.originalText || parentZone.innerText.split('\n')[1] || parentZone.innerText;
+        }
+        dragItem.remove(); // Remove draggable from old pos
+    }
+
+    // 3. In neue Zone einfügen
+    if(!zone.dataset.originalText) zone.dataset.originalText = zone.innerText;
+    
+    // Wir rendern hier die Box neu, aber WICHTIG: Sie muss draggable bleiben!
+    zone.innerHTML = ""; // Text weg
     zone.classList.add("filled");
     zone.dataset.occupiedBy = nr;
     zone.dataset.color = color;
+
+    // Erstelle Drag-Box direkt in der Zone
+    createDragItem(nr, color, zone.id);
     
-    // Das gezogene Item aus dem Pool entfernen
-    const dragItem = document.getElementById("d" + nr); 
-    if(dragItem) dragItem.remove();
+    // Label klein drunter
+    let lbl = document.createElement("small");
+    lbl.style.marginTop = "5px"; lbl.style.pointerEvents = "none";
+    lbl.innerText = zone.dataset.originalText;
+    zone.appendChild(lbl);
 }
 
 function checkDragAssignments() {
@@ -508,75 +568,55 @@ function checkDragAssignments() {
         const zone = document.getElementById("zone-" + index);
         const occupied = zone.dataset.occupiedBy;
         if (occupied == zone.dataset.correctNr) { zone.classList.add("correct"); } 
-        else { zone.classList.add("wrong"); errors++; }
+        else { 
+            zone.classList.add("wrong"); 
+            zone.classList.add("shake-it"); // Animation
+            errors++; 
+        }
     });
 
     if (errors === 0) {
+        // GEWONNEN
         score += 4; playerStats.coins += 2; saveStats();
         document.getElementById("score-label-drag").innerText = score;
         document.getElementById("check-drag-btn").style.display = "none";
         document.getElementById("next-drag-btn").style.display = "block";
     } else {
-        lives--; updateLivesDisplay(); document.getElementById("check-drag-btn").disabled = true;
-        if(lives <= 0) { setTimeout(finishGame, 1000); } 
-        else { setTimeout(() => { alert("Ein Herz verloren! Nächste Runde..."); loadDrag(); }, 1000); }
+        // FEHLER (Kein Popup, nur visuell)
+        lives--; 
+        updateLivesDisplay(); 
+        document.getElementById("check-drag-btn").disabled = true;
+        
+        setTimeout(() => {
+            // Reset der falschen Zonen (nicht der Richtigen)
+            currentDragData.forEach((s, index) => {
+                let z = document.getElementById("zone-" + index);
+                z.classList.remove("shake-it");
+                // Wenn Spiel vorbei oder Runde neu geladen wird:
+            });
+            
+            if(lives <= 0) { 
+                finishGame(); 
+            } else { 
+                // Kurze Pause, dann Reset für nächsten Versuch dieser Runde
+                loadDrag(); 
+            }
+        }, 1200);
     }
 }
 
 /* --- ALLGEMEINE GAME OVER LOGIK --- */
 function finishGame() {
     let currentHighScore = playerStats.scores[currentModeKey];
-
-    // Highscore nur für den AKTUELLEN Modus updaten
     if(score > currentHighScore) {
         playerStats.scores[currentModeKey] = score;
         currentHighScore = score;
         saveStats();
     }
-    
-    // UI Update
     document.getElementById("go-score").innerText = score;
     document.getElementById("go-best").innerText = currentHighScore;
     
-    // Schönen Namen für den Modus anzeigen
-    let modeName = "Unbekannt";
-    if(currentModeKey === "quiz_easy") modeName = "Quiz Normal";
-    if(currentModeKey === "quiz_hard") modeName = "Quiz Schwer";
-    if(currentModeKey === "drag") modeName = "Zuordnen";
-    document.getElementById("go-mode-name").innerText = modeName;
-    
-    // Leaderboard für diesen Modus erstellen
-    const lbContainer = document.getElementById("leaderboard-content");
-    lbContainer.innerHTML = "";
-    
-    // User Eintrag (Highlight)
-    let userRow = document.createElement("div");
-    userRow.className = "lb-row highlight";
-    userRow.innerHTML = `<span>#1 DU (Aktuell)</span><span>${score}</span>`;
-    lbContainer.appendChild(userRow);
-
-    // Highscore Eintrag (falls abweichend)
-    if (currentHighScore > score) {
-         let highRow = document.createElement("div");
-        highRow.className = "lb-row";
-        highRow.style.color = "var(--accent)";
-        highRow.innerHTML = `<span>🏆 Dein Rekord</span><span>${currentHighScore}</span>`;
-        lbContainer.appendChild(highRow);
-    }
-
-    // Platzhalter
-    let placeholder = document.createElement("div");
-    placeholder.className = "lb-row";
-    placeholder.innerHTML = `<span>#2 ---</span><span>---</span>`;
-    lbContainer.appendChild(placeholder);
-    
-    let placeholder2 = document.createElement("div");
-    placeholder2.className = "lb-row";
-    placeholder2.innerHTML = `<span>#3 ...</span><span>...</span>`;
-    lbContainer.appendChild(placeholder2);
-
-
-    // Continue Button Logik
+    // Continue Button Check
     const btnCont = document.getElementById("btn-continue");
     if(playerStats.coins >= continueCost) {
         btnCont.disabled = false;
@@ -587,7 +627,6 @@ function finishGame() {
         btnCont.innerHTML = `Zu wenig Coins (${playerStats.coins}/${continueCost})`;
         btnCont.style.opacity = "0.5";
     }
-
     document.getElementById("game-over-screen").classList.add("active");
 }
 
@@ -599,12 +638,7 @@ function buyContinue() {
         updateLivesDisplay();
         updateUIStats();
         document.getElementById("game-over-screen").classList.remove("active");
-        
-        if(currentModeKey.includes("quiz")) {
-             nextQuizQuestion();
-        } else {
-             loadDrag();
-        }
+        if(currentModeKey.includes("quiz")) nextQuizQuestion(); else loadDrag();
     }
 }
 
@@ -614,29 +648,60 @@ function restartGame() {
     else startDragDrop();
 }
 
-/* --- FLASHCARDS & TABLE (Unverändert) --- */
+/* --- FLASHCARDS (Normal & Zufall) --- */
 let cardIdx=0; 
-function startFlashcards(){
+let flashcardDeck = [];
+let isRandomFlash = false;
+
+function startFlashcards(random){
+    isRandomFlash = random;
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("flashcard-screen").classList.add("active");
-    cardIdx=0; renderCardFront(); 
+    
+    if(random) {
+        flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5);
+    } else {
+        flashcardDeck = [...SDGS]; // 1-17 Reihenfolge
+    }
+    
+    cardIdx=0; 
+    renderCardFront(); 
 }
+
 function renderCardFront() {
-    let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
+    let s = flashcardDeck[cardIdx];
+    const c=document.getElementById("main-card");
     c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`;
-    c.dataset.side = "front"; document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`;
+    c.dataset.side = "front"; 
+    document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`;
 }
+
 function renderCardBack() {
-    let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
+    let s = flashcardDeck[cardIdx];
+    const c=document.getElementById("main-card");
     c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}">`;
     c.dataset.side = "back";
 }
+
 function flipCard(){
     const c=document.getElementById("main-card");
     if (c.dataset.side === "front") renderCardBack(); else renderCardFront();
 }
-function nextCard(){ cardIdx=(cardIdx+1)%17; renderCardFront(); }
-function prevCard(){ cardIdx=(cardIdx+16)%17; renderCardFront(); }
+
+function nextCard(){ 
+    cardIdx++;
+    if(cardIdx >= 17) {
+        if(isRandomFlash) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); // Neu mischen
+        cardIdx = 0;
+    }
+    renderCardFront(); 
+}
+
+function prevCard(){ 
+    cardIdx--;
+    if(cardIdx < 0) cardIdx = 16;
+    renderCardFront(); 
+}
 
 function showTable(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
