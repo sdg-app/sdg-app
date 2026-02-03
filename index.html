@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SDG Master - Leaderboard Update</title>
+    <title>SDG Master - Smart Leaderboard</title>
     <style>
         :root {
             --bg-dark: #2D2D2D;
@@ -265,8 +265,9 @@
 </div>
 
 <script type="module">
+    // !!! WICHTIG: updateDoc WIRD HIER IMPORTIERT !!!
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCxA2tDZMu57sko9UN_uMc8OHNBErAAwVs",
@@ -287,32 +288,57 @@
         console.error("Firebase Fehler:", e);
     }
 
-    // UPDATE: Diese Funktion akzeptiert jetzt eine ID, wo sie die Liste hinrendern soll
+    // UPDATE: SMART SUBMIT LOGIC (PRÜFEN VOR SPEICHERN)
     window.submitScoreToDB = async function(name, score, mode) {
         if(!db) return;
         try {
-            await addDoc(collection(db, "leaderboard"), {
-                name: name,
-                score: score,
-                mode: mode,
-                timestamp: new Date()
-            });
-            // Nach dem Senden laden wir die Liste für den Game Over Screen neu
-            window.loadLeaderboard(mode, "leaderboard-content"); 
+            // 1. Prüfen ob Eintrag existiert
+            const q = query(
+                collection(db, "leaderboard"), 
+                where("name", "==", name), 
+                where("mode", "==", mode)
+            );
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                // FALL 1: Spieler existiert noch nicht -> Neu anlegen
+                await addDoc(collection(db, "leaderboard"), {
+                    name: name,
+                    score: score,
+                    mode: mode,
+                    timestamp: new Date()
+                });
+                return "new"; // Success
+            } else {
+                // FALL 2: Spieler existiert -> Score vergleichen
+                const existingDoc = snapshot.docs[0];
+                const oldScore = existingDoc.data().score;
+
+                if (score > oldScore) {
+                    // Neuer Score ist besser -> Update
+                    await updateDoc(existingDoc.ref, {
+                        score: score,
+                        timestamp: new Date()
+                    });
+                    return "updated"; // Success
+                } else {
+                    // Alter Score war besser -> Nichts tun
+                    return "lower"; // Kein Update nötig
+                }
+            }
         } catch (e) {
             console.error("Fehler beim Senden: ", e);
-            alert("Fehler beim Senden. Prüfe deine Internetverbindung.");
+            throw e; // Fehler weiterwerfen für UI Handling
+        } finally {
+             // Egal was passiert ist, Liste neu laden
+             window.loadLeaderboard(mode, "leaderboard-content"); 
         }
     };
 
-    // containerId default ist für den Game Over Screen
     window.loadLeaderboard = async function(mode, containerId = "leaderboard-content") {
         const lbContent = document.getElementById(containerId);
-        if(!lbContent) return; // Falls ID nicht existiert
-        if(!db) {
-            lbContent.innerHTML = "Keine Datenbank-Verbindung.";
-            return;
-        }
+        if(!lbContent) return;
+        if(!db) { lbContent.innerHTML = "Keine Datenbank-Verbindung."; return; }
         
         lbContent.innerHTML = "Lade...";
         
@@ -324,7 +350,6 @@
             let data = [];
             
             querySnapshot.forEach((doc) => { data.push(doc.data()); });
-            // Kein Joini7 mehr
             
             data.forEach((entry, index) => {
                 let rank = index + 1;
@@ -379,19 +404,13 @@ function updateLivesDisplay() { let hearts = ""; for(let i=0; i<lives; i++) hear
 function openGlobalLeaderboard() {
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("leaderboard-screen").classList.add("active");
-    // Standardmäßig ersten Tab laden
     switchLBTab('quiz_easy', document.querySelector('.tab-btn')); 
 }
 
 function switchLBTab(mode, btn) {
-    // Tabs styling
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
     btn.classList.add('active-tab');
-    
-    // Laden in den Container vom neuen Screen
-    if(window.loadLeaderboard) {
-        window.loadLeaderboard(mode, "global-lb-content");
-    }
+    if(window.loadLeaderboard) window.loadLeaderboard(mode, "global-lb-content");
 }
 
 function startQuiz(n){
@@ -471,6 +490,7 @@ function finishGame() {
     document.getElementById("submit-container").style.display = "flex";
     document.getElementById("submit-message").style.display = "none";
     document.querySelector(".submit-btn").disabled = false;
+    document.querySelector(".submit-btn").innerText = "SENDEN";
 
     // Continue Logic
     const btnCont = document.getElementById("btn-continue");
@@ -478,7 +498,6 @@ function finishGame() {
     
     document.getElementById("game-over-screen").classList.add("active");
     
-    // Versuch das Leaderboard zu laden (falls bereits verbunden) für den Game Over Screen
     if(window.loadLeaderboard) window.loadLeaderboard(currentModeKey, "leaderboard-content");
 }
 
@@ -491,9 +510,22 @@ function submitScore() {
     if(window.submitScoreToDB) {
         document.querySelector(".submit-btn").disabled = true;
         document.querySelector(".submit-btn").innerText = "...";
-        window.submitScoreToDB(name, score, currentModeKey).then(() => {
+        
+        window.submitScoreToDB(name, score, currentModeKey)
+        .then((result) => {
             document.getElementById("submit-container").style.display = "none";
-            document.getElementById("submit-message").style.display = "block";
+            const msg = document.getElementById("submit-message");
+            msg.style.display = "block";
+            
+            // User Feedback
+            if(result === "new") msg.innerText = "Neuer Eintrag erstellt!";
+            else if(result === "updated") msg.innerText = "Highscore verbessert! 🎉";
+            else if(result === "lower") msg.innerText = "Dein alter Highscore war besser.";
+            else msg.innerText = "Gesendet.";
+        })
+        .catch(() => {
+             document.querySelector(".submit-btn").disabled = false;
+             document.querySelector(".submit-btn").innerText = "Retry";
         });
     } else {
         alert("Datenbank noch nicht verbunden!");
