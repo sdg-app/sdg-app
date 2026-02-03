@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SDGs lernen</title>
+    <title>SDG Master - Leaderboard Update</title>
     <style>
         :root {
             --bg-dark: #2D2D2D;
@@ -51,6 +51,14 @@
         .achievement-star { font-size: 24px; color: #555; transition: color 0.3s; }
         .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
 
+        /* LEADERBOARD TABS */
+        .lb-tabs { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 5px; }
+        .tab-btn {
+            flex: 1; background: var(--card-bg); border: 1px solid #555; color: #aaa;
+            padding: 10px 5px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
+        .tab-btn.active-tab { background: var(--accent); color: black; border-color: var(--accent); }
+
         /* Quiz UI */
         .sdg-display-box {
             width: 100%; height: 180px; display: flex; justify-content: center; align-items: center;
@@ -78,7 +86,6 @@
         .go-stats { margin-bottom: 20px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
         .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 18px; }
 
-        /* Leaderboard Input */
         .name-input-container { width: 100%; margin-bottom: 20px; display: flex; gap: 10px; }
         .name-input { 
             flex-grow: 1; padding: 10px; border-radius: 5px; border: none; font-size: 16px; 
@@ -91,13 +98,12 @@
         .submit-btn:disabled { background: #555; cursor: not-allowed; }
 
         /* Leaderboard Table */
-        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 200px; overflow-y: auto; }
+        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 350px; overflow-y: auto; }
         .lb-header { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px;}
         .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; color: #bbb; font-size: 14px; }
-        .lb-row:nth-child(1) { color: #FFD700; } /* Gold */
-        .lb-row:nth-child(2) { color: #C0C0C0; } /* Silber */
-        .lb-row:nth-child(3) { color: #CD7F32; } /* Bronze */
-        .lb-row.joini { color: #ff99cc !important; font-weight: bold; } 
+        .lb-row:nth-child(1) { color: #FFD700; } 
+        .lb-row:nth-child(2) { color: #C0C0C0; } 
+        .lb-row:nth-child(3) { color: #CD7F32; } 
 
         .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
         .btn-continue { background: var(--accent); color: black; }
@@ -144,8 +150,15 @@
             <span class="currency-display" style="justify-content:center; font-size:20px;">
                 🪙 <span id="menu-coins">0</span>
             </span>
-            <div style="font-size:12px; color:#888; margin-top:5px;">Leaderboard is LIVE!</div>
+            <div style="font-size:12px; color:#888; margin-top:5px;">Sammle Sterne & miss dich global!</div>
         </div>
+        
+        <div class="menu-btn" onclick="openGlobalLeaderboard()">
+            <div class="btn-left"><span>🏆 Globales Leaderboard</span></div>
+            <span style="font-size:24px;">»</span>
+        </div>
+
+        <div style="border-top:1px solid #555; margin:10px 0;"></div>
         
         <div class="menu-btn" onclick="startQuiz(4)">
             <div class="btn-left"><span>Quiz (Normal)</span><span class="btn-sub">Ziel: 30 Pkt.</span></div>
@@ -163,6 +176,26 @@
         <div class="menu-btn" onclick="startFlashcards(false)">Karteikarten (1-17)</div>
         <div class="menu-btn" onclick="startFlashcards(true)">Karteikarten (Zufall)</div>
         <div class="menu-btn" onclick="showTable()">Tabelle lernen</div>
+    </div>
+
+    <div id="leaderboard-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Ranglisten</span></div>
+        
+        <div class="lb-tabs">
+            <button class="tab-btn active-tab" onclick="switchLBTab('quiz_easy', this)">Normal</button>
+            <button class="tab-btn" onclick="switchLBTab('quiz_hard', this)">Schwer</button>
+            <button class="tab-btn" onclick="switchLBTab('drag', this)">Drag & Drop</button>
+        </div>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <span>Platzierung</span>
+                <span>Punkte</span>
+            </div>
+            <div id="global-lb-content" style="text-align:center; padding:10px; color:#666;">
+                Lade Daten...
+            </div>
+        </div>
     </div>
 
     <div id="quiz-screen" class="screen">
@@ -232,7 +265,6 @@
 </div>
 
 <script type="module">
-    // --- DEINE FIREBASE CONFIG IST HIER INTEGRIERT ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -246,7 +278,6 @@
         measurementId: "G-YR00EZ2LR0"
     };
 
-    // Firebase Init
     let db;
     try {
         const app = initializeApp(firebaseConfig);
@@ -256,7 +287,7 @@
         console.error("Firebase Fehler:", e);
     }
 
-    // Funktionen global verfügbar machen
+    // UPDATE: Diese Funktion akzeptiert jetzt eine ID, wo sie die Liste hinrendern soll
     window.submitScoreToDB = async function(name, score, mode) {
         if(!db) return;
         try {
@@ -266,15 +297,18 @@
                 mode: mode,
                 timestamp: new Date()
             });
-            window.loadLeaderboard(mode); // Liste neu laden
+            // Nach dem Senden laden wir die Liste für den Game Over Screen neu
+            window.loadLeaderboard(mode, "leaderboard-content"); 
         } catch (e) {
             console.error("Fehler beim Senden: ", e);
             alert("Fehler beim Senden. Prüfe deine Internetverbindung.");
         }
     };
 
-    window.loadLeaderboard = async function(mode) {
-        const lbContent = document.getElementById("leaderboard-content");
+    // containerId default ist für den Game Over Screen
+    window.loadLeaderboard = async function(mode, containerId = "leaderboard-content") {
+        const lbContent = document.getElementById(containerId);
+        if(!lbContent) return; // Falls ID nicht existiert
         if(!db) {
             lbContent.innerHTML = "Keine Datenbank-Verbindung.";
             return;
@@ -283,40 +317,26 @@
         lbContent.innerHTML = "Lade...";
         
         try {
-            // Hole Top 10 Scores für diesen Modus
-            const q = query(collection(db, "leaderboard"), where("mode", "==", mode), orderBy("score", "desc"), limit(10));
+            const q = query(collection(db, "leaderboard"), where("mode", "==", mode), orderBy("score", "desc"), limit(20));
             const querySnapshot = await getDocs(q);
             
             let html = "";
             let data = [];
             
-            querySnapshot.forEach((doc) => {
-                data.push(doc.data());
-            });
-
-            // Joini7 hinzufügen (Der Bot)
-            data.push({ name: "Joini7", score: 80, isBot: true });
+            querySnapshot.forEach((doc) => { data.push(doc.data()); });
+            // Kein Joini7 mehr
             
-            // Sortieren (Da Joini7 jetzt dabei ist)
-            data.sort((a,b) => b.score - a.score);
-            
-            // Nur Top 10 anzeigen
-            data = data.slice(0, 10);
-
             data.forEach((entry, index) => {
                 let rank = index + 1;
-                let cssClass = "lb-row";
-                if(entry.name === "Joini7") cssClass += " joini";
-                html += `<div class="${cssClass}"><span>#${rank} ${entry.name}</span><span>${entry.score}</span></div>`;
+                html += `<div class="lb-row"><span>#${rank} ${entry.name}</span><span>${entry.score}</span></div>`;
             });
 
             if(data.length === 0) html = "<div style='padding:10px'>Noch keine Einträge.</div>";
-            
             lbContent.innerHTML = html;
 
         } catch(e) {
             console.error("Ladefehler:", e);
-            lbContent.innerHTML = "Fehler beim Laden.";
+            lbContent.innerHTML = "Ladefehler (Index fehlt?).";
         }
     };
 </script>
@@ -354,6 +374,25 @@ let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy";
 function getImgUrl(nr) { const padded = nr.toString().padStart(2, "0"); return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`; }
 function showMenu(){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("menu-screen").classList.add("active"); updateUIStats(); }
 function updateLivesDisplay() { let hearts = ""; for(let i=0; i<lives; i++) hearts += "❤️"; for(let i=lives; i<3; i++) hearts += "🖤"; document.getElementById("lives-label-quiz").innerText = hearts; document.getElementById("lives-label-drag").innerText = hearts; }
+
+// --- GLOBAL LEADERBOARD FUNCTIONS ---
+function openGlobalLeaderboard() {
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("leaderboard-screen").classList.add("active");
+    // Standardmäßig ersten Tab laden
+    switchLBTab('quiz_easy', document.querySelector('.tab-btn')); 
+}
+
+function switchLBTab(mode, btn) {
+    // Tabs styling
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+    btn.classList.add('active-tab');
+    
+    // Laden in den Container vom neuen Screen
+    if(window.loadLeaderboard) {
+        window.loadLeaderboard(mode, "global-lb-content");
+    }
+}
 
 function startQuiz(n){
     quizModeN = n; currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; score = 0; lives = 3; resetDeck();
@@ -439,8 +478,8 @@ function finishGame() {
     
     document.getElementById("game-over-screen").classList.add("active");
     
-    // Versuch das Leaderboard zu laden (falls bereits verbunden)
-    if(window.loadLeaderboard) window.loadLeaderboard(currentModeKey);
+    // Versuch das Leaderboard zu laden (falls bereits verbunden) für den Game Over Screen
+    if(window.loadLeaderboard) window.loadLeaderboard(currentModeKey, "leaderboard-content");
 }
 
 function submitScore() {
