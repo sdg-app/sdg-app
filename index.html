@@ -28,12 +28,8 @@
         }
 
         #app-container {
-            width: 100%;
-            max-width: 450px;
-            min-height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-            position: relative;
+            width: 100%; max-width: 450px; min-height: 100vh;
+            padding: 20px; box-sizing: border-box; position: relative;
         }
 
         .screen { display: none; flex-direction: column; }
@@ -41,56 +37,67 @@
 
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; }
         .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; margin-right: 10px;}
-
         .currency-display { color: var(--coin-gold); font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 16px; }
 
-        /* Menü */
+        /* Menu Buttons */
         .menu-btn {
-            background-color: var(--card-bg);
-            margin: 10px 0; padding: 15px;
-            border-radius: 8px; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
+            background-color: var(--card-bg); margin: 10px 0; padding: 15px;
+            border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
             transition: transform 0.1s;
         }
         .menu-btn:active { transform: scale(0.98); }
-        
         .btn-left { display: flex; flex-direction: column; }
         .btn-sub { font-size: 11px; color: #888; margin-top: 4px; }
-        
         .achievement-star { font-size: 24px; color: #555; transition: color 0.3s; }
         .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
 
         /* Quiz UI */
         .sdg-display-box {
-            width: 100%; height: 180px;
-            display: flex; justify-content: center; align-items: center;
-            border-radius: 12px; margin-bottom: 30px;
-            font-size: 80px; font-weight: bold;
-            transition: all 0.3s;
+            width: 100%; height: 180px; display: flex; justify-content: center; align-items: center;
+            border-radius: 12px; margin-bottom: 30px; font-size: 80px; font-weight: bold; transition: all 0.3s;
         }
         .sdg-display-box img { max-height: 140px; border-radius: 8px; }
-        
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-btn {
-            background-color: var(--card-bg); border: none; color: white;
-            padding: 10px; border-radius: 6px; cursor: pointer; min-height: 90px;
-            font-size: 13px; display: flex; align-items: center; justify-content: center;
-            text-align: center; line-height: 1.2; transition: all 0.2s;
+            background-color: var(--card-bg); border: none; color: white; padding: 10px; border-radius: 6px; 
+            cursor: pointer; min-height: 90px; font-size: 13px; display: flex; align-items: center; 
+            justify-content: center; text-align: center; line-height: 1.2; transition: all 0.2s;
         }
         .option-btn:disabled { cursor: default; }
 
-        /* Game Over Screen */
+        /* Game Over & Input */
         #game-over-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 100;
             display: none; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box; text-align: center;
+            padding: 20px; box-sizing: border-box; text-align: center; overflow-y: auto;
         }
         #game-over-screen.active { display: flex; }
         
         .go-title { font-size: 32px; color: var(--wrong-red); margin-bottom: 20px; font-weight: bold; }
-        .go-stats { margin-bottom: 30px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
+        .go-stats { margin-bottom: 20px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
         .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 18px; }
+
+        /* Leaderboard Input */
+        .name-input-container { width: 100%; margin-bottom: 20px; display: flex; gap: 10px; }
+        .name-input { 
+            flex-grow: 1; padding: 10px; border-radius: 5px; border: none; font-size: 16px; 
+            background: #eee; color: #333; font-family: inherit;
+        }
+        .submit-btn {
+            background: var(--correct-green); color: white; border: none; padding: 0 20px; 
+            border-radius: 5px; font-weight: bold; cursor: pointer;
+        }
+        .submit-btn:disabled { background: #555; cursor: not-allowed; }
+
+        /* Leaderboard Table */
+        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 200px; overflow-y: auto; }
+        .lb-header { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px;}
+        .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; color: #bbb; font-size: 14px; }
+        .lb-row:nth-child(1) { color: #FFD700; } /* Gold */
+        .lb-row:nth-child(2) { color: #C0C0C0; } /* Silber */
+        .lb-row:nth-child(3) { color: #CD7F32; } /* Bronze */
+        .lb-row.joini { color: #ff99cc !important; font-weight: bold; } 
 
         .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
         .btn-continue { background: var(--accent); color: black; }
@@ -103,32 +110,25 @@
             background: var(--card-bg); min-height: 130px; border: 2px dashed #666; 
             border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
             justify-content: center; text-align: center; padding: 10px; font-size: 12px; position: relative;
-            transition: background 0.2s;
         }
         .drop-zone.filled { border-style: solid; border-color: transparent; }
-        
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
         .shake-it { animation: shake 0.4s; border-color: var(--wrong-red) !important; }
 
         .drag-items { display: flex; justify-content: space-around; padding: 15px; background: #333; border-radius: 8px; min-height: 70px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        
         .drag-box { 
             width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; 
             font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0; z-index: 10;
         }
         .drop-zone .drag-box { pointer-events: auto; cursor: grab; }
-
         .action-btn { background-color: var(--accent); color: black; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
-
         .correct { background-color: var(--correct-green) !important; color: white !important; }
         .wrong { background-color: var(--wrong-red) !important; color: white !important; }
         
-        /* Flashcards */
+        /* Flashcards / List */
         .flashcard { width: 100%; max-width: 300px; height: 400px; margin: 20px auto; background: white; color: black; border-radius: 15px; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         .flashcard img { border-radius: 10px; width: 280px; height: auto; }
-
-        /* Liste */
         .list-row { display: flex; background: var(--card-bg); margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden; }
         .row-nr { width: 45px; height: 60px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
         .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; object-fit: contain; }
@@ -144,35 +144,22 @@
             <span class="currency-display" style="justify-content:center; font-size:20px;">
                 🪙 <span id="menu-coins">0</span>
             </span>
-            <div style="font-size:12px; color:#888; margin-top:5px;">Sammle Sterne durch Highscores!</div>
+            <div style="font-size:12px; color:#888; margin-top:5px;">Leaderboard is LIVE!</div>
         </div>
         
         <div class="menu-btn" onclick="startQuiz(4)">
-            <div class="btn-left">
-                <span>Quiz (Normal)</span>
-                <span class="btn-sub">Ziel: 30 Punkte</span>
-            </div>
+            <div class="btn-left"><span>Quiz (Normal)</span><span class="btn-sub">Ziel: 30 Pkt.</span></div>
             <span id="star-quiz-easy" class="achievement-star">☆</span>
         </div>
-        
         <div class="menu-btn" onclick="startQuiz(6)">
-            <div class="btn-left">
-                <span>Quiz (Schwer)</span>
-                <span class="btn-sub">Ziel: 15 Punkte</span>
-            </div>
+            <div class="btn-left"><span>Quiz (Schwer)</span><span class="btn-sub">Ziel: 15 Pkt.</span></div>
             <span id="star-quiz-hard" class="achievement-star">☆</span>
         </div>
-        
         <div class="menu-btn" onclick="startDragDrop()">
-            <div class="btn-left">
-                <span>Ziehen & Ablegen</span>
-                <span class="btn-sub">Ziel: 50 Punkte</span>
-            </div>
+            <div class="btn-left"><span>Ziehen & Ablegen</span><span class="btn-sub">Ziel: 50 Pkt.</span></div>
             <span id="star-drag" class="achievement-star">☆</span>
         </div>
-        
         <div style="border-top:1px solid #555; margin:10px 0;"></div>
-
         <div class="menu-btn" onclick="startFlashcards(false)">Karteikarten (1-17)</div>
         <div class="menu-btn" onclick="startFlashcards(true)">Karteikarten (Zufall)</div>
         <div class="menu-btn" onclick="showTable()">Tabelle lernen</div>
@@ -202,17 +189,6 @@
         <button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button>
     </div>
 
-    <div id="game-over-screen">
-        <div class="go-title">GAME OVER</div>
-        <div class="go-stats">
-            <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
-            <div class="stat-row"><span>Highscore:</span> <span id="go-best" style="color:var(--accent)">0</span></div>
-        </div>
-        <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
-        <button class="go-btn btn-restart" onclick="restartGame()">Neuer Versuch</button>
-        <button class="go-btn btn-menu" onclick="showMenu()">Zum Hauptmenü</button>
-    </div>
-
     <div id="flashcard-screen" class="screen">
         <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="card-progress"></span></div>
         <div id="main-card" class="flashcard" onclick="flipCard()"></div>
@@ -221,39 +197,137 @@
             <button class="option-btn" onclick="nextCard()" style="min-height: auto; width: 45%;">→</button>
         </div>
     </div>
-
     <div id="table-screen" class="screen">
         <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button></div>
         <div id="table-content"></div>
     </div>
+
+    <div id="game-over-screen">
+        <div class="go-title">GAME OVER</div>
+        <div class="go-stats">
+            <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
+            <div class="stat-row"><span>Persönl. Rekord:</span> <span id="go-best" style="color:var(--accent)">0</span></div>
+        </div>
+
+        <div class="name-input-container" id="submit-container">
+            <input type="text" id="player-name" class="name-input" placeholder="Dein Name" maxlength="12">
+            <button class="submit-btn" onclick="submitScore()">SENDEN</button>
+        </div>
+        <div id="submit-message" style="color:#aaa; margin-bottom:10px; font-size:13px; display:none;">Score gesendet!</div>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <span>Globales Leaderboard</span>
+                <span>Punkte</span>
+            </div>
+            <div id="leaderboard-content" style="text-align:center; padding:10px; color:#666;">
+                Lade Daten...
+            </div>
+        </div>
+
+        <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
+        <button class="go-btn btn-restart" onclick="restartGame()">Neuer Versuch</button>
+        <button class="go-btn btn-menu" onclick="showMenu()">Zum Hauptmenü</button>
+    </div>
 </div>
 
+<script type="module">
+    // --- DEINE FIREBASE CONFIG IST HIER INTEGRIERT ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCxA2tDZMu57sko9UN_uMc8OHNBErAAwVs",
+        authDomain: "sdg-quiz-50315.firebaseapp.com",
+        projectId: "sdg-quiz-50315",
+        storageBucket: "sdg-quiz-50315.firebasestorage.app",
+        messagingSenderId: "948981299829",
+        appId: "1:948981299829:web:8eaf1137c05efae5c9963c",
+        measurementId: "G-YR00EZ2LR0"
+    };
+
+    // Firebase Init
+    let db;
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        console.log("Firebase verbunden!");
+    } catch(e) {
+        console.error("Firebase Fehler:", e);
+    }
+
+    // Funktionen global verfügbar machen
+    window.submitScoreToDB = async function(name, score, mode) {
+        if(!db) return;
+        try {
+            await addDoc(collection(db, "leaderboard"), {
+                name: name,
+                score: score,
+                mode: mode,
+                timestamp: new Date()
+            });
+            window.loadLeaderboard(mode); // Liste neu laden
+        } catch (e) {
+            console.error("Fehler beim Senden: ", e);
+            alert("Fehler beim Senden. Prüfe deine Internetverbindung.");
+        }
+    };
+
+    window.loadLeaderboard = async function(mode) {
+        const lbContent = document.getElementById("leaderboard-content");
+        if(!db) {
+            lbContent.innerHTML = "Keine Datenbank-Verbindung.";
+            return;
+        }
+        
+        lbContent.innerHTML = "Lade...";
+        
+        try {
+            // Hole Top 10 Scores für diesen Modus
+            const q = query(collection(db, "leaderboard"), where("mode", "==", mode), orderBy("score", "desc"), limit(10));
+            const querySnapshot = await getDocs(q);
+            
+            let html = "";
+            let data = [];
+            
+            querySnapshot.forEach((doc) => {
+                data.push(doc.data());
+            });
+
+            // Joini7 hinzufügen (Der Bot)
+            data.push({ name: "Joini7", score: 80, isBot: true });
+            
+            // Sortieren (Da Joini7 jetzt dabei ist)
+            data.sort((a,b) => b.score - a.score);
+            
+            // Nur Top 10 anzeigen
+            data = data.slice(0, 10);
+
+            data.forEach((entry, index) => {
+                let rank = index + 1;
+                let cssClass = "lb-row";
+                if(entry.name === "Joini7") cssClass += " joini";
+                html += `<div class="${cssClass}"><span>#${rank} ${entry.name}</span><span>${entry.score}</span></div>`;
+            });
+
+            if(data.length === 0) html = "<div style='padding:10px'>Noch keine Einträge.</div>";
+            
+            lbContent.innerHTML = html;
+
+        } catch(e) {
+            console.error("Ladefehler:", e);
+            lbContent.innerHTML = "Fehler beim Laden.";
+        }
+    };
+</script>
+
 <script>
-/* DATEN */
+/* --- GAME LOGIC --- */
 const SDGS = [
-    {nr: 1, farbe: "#E5243B", titel: "Keine Armut"},
-    {nr: 2, farbe: "#DDA63A", titel: "Kein Hunger"},
-    {nr: 3, farbe: "#4C9F38", titel: "Gesundheit und Wohlergehen"},
-    {nr: 4, farbe: "#C5192D", titel: "Hochwertige Bildung"},
-    {nr: 5, farbe: "#FF3A21", titel: "Geschlechtergleichstellung"},
-    {nr: 6, farbe: "#26BDE2", titel: "Sauberes Wasser und Sanitäreinrichtungen"},
-    {nr: 7, farbe: "#FCC30B", titel: "Bezahlbare und saubere Energie"},
-    {nr: 8, farbe: "#A21942", titel: "Menschenwürdige Arbeit und Wirtschaftswachstum"},
-    {nr: 9, farbe: "#FD6925", titel: "Industrie, Innovation und Infrastruktur"},
-    {nr: 10, farbe: "#DD1367", titel: "Weniger Ungleichheiten"},
-    {nr: 11, farbe: "#FD9D24", titel: "Nachhaltige Städte und Gemeinden"},
-    {nr: 12, farbe: "#BF8B2E", titel: "Nachhaltige/r Konsum und Produktion"},
-    {nr: 13, farbe: "#3F7E44", titel: "Maßnahmen zum Klimaschutz"},
-    {nr: 14, farbe: "#0A97D9", titel: "Leben unter Wasser"},
-    {nr: 15, farbe: "#56C02B", titel: "Leben an Land"},
-    {nr: 16, farbe: "#00689D", titel: "Frieden, Gerechtigkeit und starke Institutionen"},
-    {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
+    {nr: 1, farbe: "#E5243B", titel: "Keine Armut"}, {nr: 2, farbe: "#DDA63A", titel: "Kein Hunger"}, {nr: 3, farbe: "#4C9F38", titel: "Gesundheit und Wohlergehen"}, {nr: 4, farbe: "#C5192D", titel: "Hochwertige Bildung"}, {nr: 5, farbe: "#FF3A21", titel: "Geschlechtergleichstellung"}, {nr: 6, farbe: "#26BDE2", titel: "Sauberes Wasser und Sanitäreinrichtungen"}, {nr: 7, farbe: "#FCC30B", titel: "Bezahlbare und saubere Energie"}, {nr: 8, farbe: "#A21942", titel: "Menschenwürdige Arbeit und Wirtschaftswachstum"}, {nr: 9, farbe: "#FD6925", titel: "Industrie, Innovation und Infrastruktur"}, {nr: 10, farbe: "#DD1367", titel: "Weniger Ungleichheiten"}, {nr: 11, farbe: "#FD9D24", titel: "Nachhaltige Städte und Gemeinden"}, {nr: 12, farbe: "#BF8B2E", titel: "Nachhaltige/r Konsum und Produktion"}, {nr: 13, farbe: "#3F7E44", titel: "Maßnahmen zum Klimaschutz"}, {nr: 14, farbe: "#0A97D9", titel: "Leben unter Wasser"}, {nr: 15, farbe: "#56C02B", titel: "Leben an Land"}, {nr: 16, farbe: "#00689D", titel: "Frieden, Gerechtigkeit und starke Institutionen"}, {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
 ];
-
-/* THRESHOLDS */
-const TARGETS = { easy: 40, hard: 20, drag: 80 };
-
-/* STATE MANAGEMENT */
+const TARGETS = { easy: 30, hard: 15, drag: 50 };
+let continueCost = 10;
 let playerStats = { coins: 0, scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 } };
 
 if(localStorage.getItem("sdgAppData")) {
@@ -261,300 +335,130 @@ if(localStorage.getItem("sdgAppData")) {
     if(!data.scores) data.scores = { quiz_easy: data.highScore || 0, quiz_hard: 0, drag: 0 };
     playerStats = data;
 }
-
-function saveStats() {
-    localStorage.setItem("sdgAppData", JSON.stringify(playerStats));
-    updateUIStats();
-}
-
+function saveStats() { localStorage.setItem("sdgAppData", JSON.stringify(playerStats)); updateUIStats(); }
 function updateUIStats() {
     document.getElementById("menu-coins").innerText = playerStats.coins;
     document.getElementById("ingame-coins-quiz").innerText = playerStats.coins;
     document.getElementById("ingame-coins-drag").innerText = playerStats.coins;
-    
     updateStar("star-quiz-easy", playerStats.scores.quiz_easy, TARGETS.easy);
     updateStar("star-quiz-hard", playerStats.scores.quiz_hard, TARGETS.hard);
     updateStar("star-drag", playerStats.scores.drag, TARGETS.drag);
 }
-
 function updateStar(id, score, target) {
     const el = document.getElementById(id);
-    if(score >= target) { el.innerText = "★"; el.classList.add("unlocked"); } 
-    else { el.innerText = "☆"; el.classList.remove("unlocked"); }
+    if(score >= target) { el.innerText = "★"; el.classList.add("unlocked"); } else { el.innerText = "☆"; el.classList.remove("unlocked"); }
 }
-
 updateUIStats();
-
-/* DECK SYSTEM */
-let masterDeck = [];
-function resetDeck() { masterDeck = [...SDGS].sort(() => Math.random() - 0.5); }
-function drawCard() { if(masterDeck.length === 0) resetDeck(); return masterDeck.pop(); }
-
+let masterDeck = []; function resetDeck() { masterDeck = [...SDGS].sort(() => Math.random() - 0.5); } function drawCard() { if(masterDeck.length === 0) resetDeck(); return masterDeck.pop(); }
 let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy"; 
-let continueCost = 30;
+function getImgUrl(nr) { const padded = nr.toString().padStart(2, "0"); return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`; }
+function showMenu(){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("menu-screen").classList.add("active"); updateUIStats(); }
+function updateLivesDisplay() { let hearts = ""; for(let i=0; i<lives; i++) hearts += "❤️"; for(let i=lives; i<3; i++) hearts += "🖤"; document.getElementById("lives-label-quiz").innerText = hearts; document.getElementById("lives-label-drag").innerText = hearts; }
 
-function getImgUrl(nr) {
-    const padded = nr.toString().padStart(2, "0");
-    return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`;
-}
-
-function showMenu(){
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById("game-over-screen").classList.remove("active");
-    document.getElementById("menu-screen").classList.add("active");
-    updateUIStats();
-}
-
-function updateLivesDisplay() {
-    let hearts = "";
-    for(let i=0; i<lives; i++) hearts += "❤️";
-    for(let i=lives; i<3; i++) hearts += "🖤";
-    document.getElementById("lives-label-quiz").innerText = hearts;
-    document.getElementById("lives-label-drag").innerText = hearts;
-}
-
-/* --- QUIZ --- */
 function startQuiz(n){
-    quizModeN = n;
-    currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy";
-    score = 0; lives = 3;
-    resetDeck();
-    document.getElementById("score-label").innerText = score;
-    updateLivesDisplay();
-    
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById("game-over-screen").classList.remove("active");
-    document.getElementById("quiz-screen").classList.add("active");
+    quizModeN = n; currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; score = 0; lives = 3; resetDeck();
+    document.getElementById("score-label").innerText = score; updateLivesDisplay();
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("quiz-screen").classList.add("active");
     nextQuizQuestion();
 }
-
 function nextQuizQuestion(){
-    currentSdg = drawCard();
-    const display = document.getElementById("quiz-display");
-    const grid = document.getElementById("quiz-options");
+    currentSdg = drawCard(); const display = document.getElementById("quiz-display"); const grid = document.getElementById("quiz-options");
     let mode = 0; if (quizModeN > 4) mode = Math.floor(Math.random() * 3) + 1; 
-
-    display.style.background = "var(--card-bg)"; display.style.color = "white";
-    display.style.fontSize = "80px"; display.innerHTML = ""; display.style.padding = "0";
-
+    display.style.background = "var(--card-bg)"; display.style.color = "white"; display.style.fontSize = "80px"; display.innerHTML = "";
     if (mode === 0) { display.style.background = currentSdg.farbe; display.innerHTML = `<span>${currentSdg.nr}</span>`; } 
     else if (mode === 1) { display.style.background = currentSdg.farbe; display.innerHTML = `<span>?</span>`; } 
     else if (mode === 2) { display.style.background = "#555"; display.innerHTML = `<span>${currentSdg.nr}</span>`; } 
     else if (mode === 3) { display.style.background = "#222"; display.style.fontSize = "24px"; display.style.padding = "20px"; display.style.textAlign = "center"; display.innerText = currentSdg.titel; }
-
-    let opts = [currentSdg];
-    while(opts.length < quizModeN){
-        let r = SDGS[Math.floor(Math.random()*17)];
-        if(!opts.find(o => o.nr === r.nr)) opts.push(r);
-    }
-    
-    grid.innerHTML = "";
-    opts.sort(()=>Math.random()-0.5).forEach(o=>{
-        let b = document.createElement("button"); 
-        b.className="option-btn"; b.dataset.nr = o.nr;
-        if (mode === 3) { b.innerText = o.nr; b.style.backgroundColor = o.farbe; b.style.fontSize = "40px"; b.style.fontWeight = "bold"; } 
-        else { b.innerText = o.titel; b.style.backgroundColor = "var(--card-bg)"; b.style.fontSize = "13px"; }
-
+    let opts = [currentSdg]; while(opts.length < quizModeN){ let r = SDGS[Math.floor(Math.random()*17)]; if(!opts.find(o => o.nr === r.nr)) opts.push(r); }
+    grid.innerHTML = ""; opts.sort(()=>Math.random()-0.5).forEach(o=>{
+        let b = document.createElement("button"); b.className="option-btn"; b.dataset.nr = o.nr;
+        if (mode === 3) { b.innerText = o.nr; b.style.backgroundColor = o.farbe; b.style.fontSize = "40px"; b.style.fontWeight = "bold"; } else { b.innerText = o.titel; b.style.backgroundColor = "var(--card-bg)"; b.style.fontSize = "13px"; }
         b.onclick = () => {
-            const isCorrect = o.nr === currentSdg.nr;
-            const allButtons = grid.querySelectorAll("button");
-            if (isCorrect) {
-                allButtons.forEach(btn => btn.disabled = true);
-                if (mode === 3) { b.style.border = "4px solid white"; b.style.opacity = "1"; } else { b.classList.add("correct"); }
-                score++; playerStats.coins += 1; saveStats();
-                document.getElementById("score-label").innerText = score;
-                setTimeout(nextQuizQuestion, 1500);
-            } else {
-                lives--; updateLivesDisplay(); b.disabled = true;
-                if (mode === 3) { b.style.opacity = "0.2"; b.style.border = "4px solid black"; } else { b.classList.add("wrong"); }
-                if (lives <= 0) {
-                    const correctBtn = Array.from(allButtons).find(btn => parseInt(btn.dataset.nr) === currentSdg.nr);
-                    if (correctBtn) { if (mode === 3) correctBtn.style.border = "4px solid white"; else correctBtn.classList.add("correct"); }
-                    allButtons.forEach(btn => btn.disabled = true);
-                    finishGame();
-                }
-            }
-        };
-        grid.appendChild(b);
+            const isCorrect = o.nr === currentSdg.nr; const allButtons = grid.querySelectorAll("button");
+            if (isCorrect) { allButtons.forEach(btn => btn.disabled = true); if (mode === 3) { b.style.border = "4px solid white"; b.style.opacity = "1"; } else { b.classList.add("correct"); } score++; playerStats.coins += 1; saveStats(); document.getElementById("score-label").innerText = score; setTimeout(nextQuizQuestion, 1500); } 
+            else { lives--; updateLivesDisplay(); b.disabled = true; if (mode === 3) { b.style.opacity = "0.2"; b.style.border = "4px solid black"; } else { b.classList.add("wrong"); } if (lives <= 0) { const correctBtn = Array.from(allButtons).find(btn => parseInt(btn.dataset.nr) === currentSdg.nr); if (correctBtn) { if (mode === 3) correctBtn.style.border = "4px solid white"; else correctBtn.classList.add("correct"); } allButtons.forEach(btn => btn.disabled = true); finishGame(); } }
+        }; grid.appendChild(b);
     });
 }
-
-/* --- DRAG & DROP --- */
 let currentDragData = [];
-
 function startDragDrop(){
-    currentModeKey = "drag";
-    score = 0; lives = 3;
-    resetDeck(); 
-    document.getElementById("score-label-drag").innerText = score;
-    updateLivesDisplay();
-
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById("game-over-screen").classList.remove("active");
-    document.getElementById("drag-screen").classList.add("active");
-    
-    const pool = document.getElementById("drag-pool");
-    pool.ondragover = e => e.preventDefault();
-    pool.ondrop = e => handleDropOnPool(e);
-
-    loadDrag();
+    currentModeKey = "drag"; score = 0; lives = 3; resetDeck(); document.getElementById("score-label-drag").innerText = score; updateLivesDisplay();
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("drag-screen").classList.add("active");
+    const pool = document.getElementById("drag-pool"); pool.ondragover = e => e.preventDefault(); pool.ondrop = e => handleDropOnPool(e); loadDrag();
 }
-
 function loadDrag(){
-    currentDragData = [];
-    for(let i=0; i<4; i++) currentDragData.push(drawCard());
-    
-    const zones = document.getElementById("drop-zones");
-    const pool = document.getElementById("drag-pool");
-    zones.innerHTML = ""; pool.innerHTML = "";
-    
-    document.getElementById("check-drag-btn").style.display = "block";
-    document.getElementById("check-drag-btn").disabled = false;
-    document.getElementById("next-drag-btn").style.display = "none";
-
+    currentDragData = []; for(let i=0; i<4; i++) currentDragData.push(drawCard());
+    const zones = document.getElementById("drop-zones"); const pool = document.getElementById("drag-pool"); zones.innerHTML = ""; pool.innerHTML = "";
+    document.getElementById("check-drag-btn").style.display = "block"; document.getElementById("check-drag-btn").disabled = false; document.getElementById("next-drag-btn").style.display = "none";
     currentDragData.forEach((s, index) => {
-        let z = document.createElement("div");
-        z.className = "drop-zone";
-        z.id = "zone-" + index;
-        z.dataset.correctNr = s.nr;
-        z.dataset.occupiedBy = "";
-        z.innerText = s.titel;
-        
-        z.ondragover = e => e.preventDefault();
-        z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
-        zones.appendChild(z);
+        let z = document.createElement("div"); z.className = "drop-zone"; z.id = "zone-" + index; z.dataset.correctNr = s.nr; z.dataset.occupiedBy = ""; z.innerText = s.titel;
+        z.ondragover = e => e.preventDefault(); z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color")); zones.appendChild(z);
     });
-
-    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
-        createDragItem(s.nr, s.farbe, "pool");
-    });
+    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => { createDragItem(s.nr, s.farbe, "pool"); });
 }
-
 function createDragItem(nr, color, origin) {
-    let container = origin === "pool" ? document.getElementById("drag-pool") : document.getElementById(origin);
-    if(document.getElementById("d"+nr)) return;
-
-    let box = document.createElement("div");
-    box.id = "d" + nr; box.className = "drag-box"; box.style.backgroundColor = color;
-    box.innerText = nr; box.draggable = true;
-    
-    box.ondragstart = e => {
-        e.dataTransfer.setData("nr", nr);
-        e.dataTransfer.setData("color", color);
-        let parentZone = box.closest(".drop-zone");
-        e.dataTransfer.setData("sourceId", parentZone ? parentZone.id : "pool");
-    };
-
-    box.addEventListener('touchstart', function(e) {
-        let touch = e.touches[0]; box.dataset.startX = touch.clientX; box.dataset.startY = touch.clientY;
-        let parentZone = box.closest(".drop-zone");
-        box.dataset.sourceId = parentZone ? parentZone.id : "pool";
-        box.style.position = 'fixed'; box.style.zIndex = '1000'; updatePosition(box, touch);
-    }, {passive: false});
-
+    let container = origin === "pool" ? document.getElementById("drag-pool") : document.getElementById(origin); if(document.getElementById("d"+nr)) return;
+    let box = document.createElement("div"); box.id = "d" + nr; box.className = "drag-box"; box.style.backgroundColor = color; box.innerText = nr; box.draggable = true;
+    box.ondragstart = e => { e.dataTransfer.setData("nr", nr); e.dataTransfer.setData("color", color); let parentZone = box.closest(".drop-zone"); e.dataTransfer.setData("sourceId", parentZone ? parentZone.id : "pool"); };
+    box.addEventListener('touchstart', function(e) { let touch = e.touches[0]; box.dataset.startX = touch.clientX; box.dataset.startY = touch.clientY; let parentZone = box.closest(".drop-zone"); box.dataset.sourceId = parentZone ? parentZone.id : "pool"; box.style.position = 'fixed'; box.style.zIndex = '1000'; updatePosition(box, touch); }, {passive: false});
     box.addEventListener('touchmove', function(e) { e.preventDefault(); updatePosition(box, e.touches[0]); }, {passive: false});
-    
-    box.addEventListener('touchend', function(e) {
-        box.style.display = 'none'; let touch = e.changedTouches[0]; let target = document.elementFromPoint(touch.clientX, touch.clientY);
-        box.style.display = 'flex'; box.style.position = 'static'; 
-        let zone = target ? target.closest('.drop-zone') : null;
-        let pool = target ? target.closest('#drag-pool') : null;
-        if (zone) handleDrop(zone, nr, color);
-        else if (pool) handleDropOnPool({ preventDefault: ()=>{}, dataTransfer: { getData: (k)=> (k==="nr"?nr:(k==="color"?color:box.dataset.sourceId)) } }, true);
-        else box.style.position = 'static';
-    });
-
+    box.addEventListener('touchend', function(e) { box.style.display = 'none'; let touch = e.changedTouches[0]; let target = document.elementFromPoint(touch.clientX, touch.clientY); box.style.display = 'flex'; box.style.position = 'static'; let zone = target ? target.closest('.drop-zone') : null; let pool = target ? target.closest('#drag-pool') : null; if (zone) handleDrop(zone, nr, color); else if (pool) handleDropOnPool({ preventDefault: ()=>{}, dataTransfer: { getData: (k)=> (k==="nr"?nr:(k==="color"?color:box.dataset.sourceId)) } }, true); else box.style.position = 'static'; });
     if(container) container.appendChild(box);
 }
-
 function updatePosition(el, touch) { el.style.left = (touch.clientX - 25) + 'px'; el.style.top = (touch.clientY - 25) + 'px'; }
-
 function handleDropOnPool(e, isTouch=false) {
-    e.preventDefault();
-    let nr = e.dataTransfer.getData("nr");
-    let color = e.dataTransfer.getData("color");
-    let sourceId = isTouch ? e.dataTransfer.getData("sourceId") : e.dataTransfer.getData("sourceId"); 
-
-    if(sourceId !== "pool") {
-        let sourceZone = document.getElementById(sourceId);
-        if(sourceZone) {
-            sourceZone.classList.remove("filled");
-            sourceZone.dataset.occupiedBy = "";
-            sourceZone.innerText = sourceZone.dataset.originalText || sourceZone.innerText.split('\n')[1] || sourceZone.innerText;
-        }
-        let oldEl = document.getElementById("d" + nr); if(oldEl) oldEl.remove();
-        createDragItem(nr, color, "pool");
-    }
+    e.preventDefault(); let nr = e.dataTransfer.getData("nr"); let color = e.dataTransfer.getData("color"); let sourceId = isTouch ? e.dataTransfer.getData("sourceId") : e.dataTransfer.getData("sourceId"); 
+    if(sourceId !== "pool") { let sourceZone = document.getElementById(sourceId); if(sourceZone) { sourceZone.classList.remove("filled"); sourceZone.dataset.occupiedBy = ""; sourceZone.innerText = sourceZone.dataset.originalText || sourceZone.innerText.split('\n')[1] || sourceZone.innerText; } let oldEl = document.getElementById("d" + nr); if(oldEl) oldEl.remove(); createDragItem(nr, color, "pool"); }
 }
-
 function handleDrop(zone, nr, color) {
-    if(zone.classList.contains("filled")) {
-        let oldNr = zone.dataset.occupiedBy;
-        let oldColor = zone.dataset.color;
-        let oldEl = document.getElementById("d" + oldNr); if(oldEl) oldEl.remove();
-        createDragItem(oldNr, oldColor, "pool");
-    }
-
-    let dragItem = document.getElementById("d" + nr);
-    if(dragItem) {
-        let parentZone = dragItem.closest(".drop-zone");
-        if(parentZone) {
-            parentZone.classList.remove("filled"); parentZone.dataset.occupiedBy = "";
-            parentZone.innerText = parentZone.dataset.originalText || parentZone.innerText.split('\n')[1] || parentZone.innerText;
-        }
-        dragItem.remove();
-    }
-
-    if(!zone.dataset.originalText) zone.dataset.originalText = zone.innerText;
-    zone.innerHTML = ""; zone.classList.add("filled");
-    zone.dataset.occupiedBy = nr; zone.dataset.color = color;
-    createDragItem(nr, color, zone.id);
-    
-    let lbl = document.createElement("small");
-    lbl.style.marginTop = "5px"; lbl.style.pointerEvents = "none";
-    lbl.innerText = zone.dataset.originalText;
-    zone.appendChild(lbl);
+    if(zone.classList.contains("filled")) { let oldNr = zone.dataset.occupiedBy; let oldColor = zone.dataset.color; let oldEl = document.getElementById("d" + oldNr); if(oldEl) oldEl.remove(); createDragItem(oldNr, oldColor, "pool"); }
+    let dragItem = document.getElementById("d" + nr); if(dragItem) { let parentZone = dragItem.closest(".drop-zone"); if(parentZone) { parentZone.classList.remove("filled"); parentZone.dataset.occupiedBy = ""; parentZone.innerText = parentZone.dataset.originalText || parentZone.innerText.split('\n')[1] || parentZone.innerText; } dragItem.remove(); }
+    if(!zone.dataset.originalText) zone.dataset.originalText = zone.innerText; zone.innerHTML = ""; zone.classList.add("filled"); zone.dataset.occupiedBy = nr; zone.dataset.color = color; createDragItem(nr, color, zone.id);
+    let lbl = document.createElement("small"); lbl.style.marginTop = "5px"; lbl.style.pointerEvents = "none"; lbl.innerText = zone.dataset.originalText; zone.appendChild(lbl);
 }
-
 function checkDragAssignments() {
-    let errors = 0;
-    currentDragData.forEach((s, index) => {
-        const zone = document.getElementById("zone-" + index);
-        const occupied = zone.dataset.occupiedBy;
-        if (occupied == zone.dataset.correctNr) { zone.classList.add("correct"); } 
-        else { zone.classList.add("wrong"); zone.classList.add("shake-it"); errors++; }
-    });
-
-    if (errors === 0) {
-        score += 4; playerStats.coins += 2; saveStats();
-        document.getElementById("score-label-drag").innerText = score;
-        document.getElementById("check-drag-btn").style.display = "none";
-        document.getElementById("next-drag-btn").style.display = "block";
-    } else {
-        lives--; updateLivesDisplay(); document.getElementById("check-drag-btn").disabled = true;
-        setTimeout(() => {
-            currentDragData.forEach((s, index) => { document.getElementById("zone-" + index).classList.remove("shake-it"); });
-            if(lives <= 0) finishGame(); else loadDrag(); 
-        }, 1200);
-    }
+    let errors = 0; currentDragData.forEach((s, index) => { const zone = document.getElementById("zone-" + index); const occupied = zone.dataset.occupiedBy; if (occupied == zone.dataset.correctNr) { zone.classList.add("correct"); } else { zone.classList.add("wrong"); zone.classList.add("shake-it"); errors++; } });
+    if (errors === 0) { score += 4; playerStats.coins += 2; saveStats(); document.getElementById("score-label-drag").innerText = score; document.getElementById("check-drag-btn").style.display = "none"; document.getElementById("next-drag-btn").style.display = "block"; } else { lives--; updateLivesDisplay(); document.getElementById("check-drag-btn").disabled = true; setTimeout(() => { currentDragData.forEach((s, index) => { document.getElementById("zone-" + index).classList.remove("shake-it"); }); if(lives <= 0) finishGame(); else loadDrag(); }, 1200); }
 }
 
+/* --- GAME OVER HANDLING --- */
 function finishGame() {
-    let currentHighScore = playerStats.scores[currentModeKey];
-    if(score > currentHighScore) {
-        playerStats.scores[currentModeKey] = score;
-        saveStats();
-    }
+    if(score > playerStats.scores[currentModeKey]) { playerStats.scores[currentModeKey] = score; saveStats(); }
     document.getElementById("go-score").innerText = score;
     document.getElementById("go-best").innerText = playerStats.scores[currentModeKey];
     
+    // Reset Inputs
+    document.getElementById("player-name").value = playerStats.username || "";
+    document.getElementById("submit-container").style.display = "flex";
+    document.getElementById("submit-message").style.display = "none";
+    document.querySelector(".submit-btn").disabled = false;
+
+    // Continue Logic
     const btnCont = document.getElementById("btn-continue");
-    if(playerStats.coins >= continueCost) {
-        btnCont.disabled = false; btnCont.innerHTML = `Weiterspielen (-${continueCost} 🪙)`; btnCont.style.opacity = "1";
-    } else {
-        btnCont.disabled = true; btnCont.innerHTML = `Zu wenig Coins (${playerStats.coins}/${continueCost})`; btnCont.style.opacity = "0.5";
-    }
+    if(playerStats.coins >= continueCost) { btnCont.disabled = false; btnCont.innerHTML = `Weiterspielen (-${continueCost} 🪙)`; btnCont.style.opacity = "1"; } else { btnCont.disabled = true; btnCont.innerHTML = `Zu wenig Coins (${playerStats.coins}/${continueCost})`; btnCont.style.opacity = "0.5"; }
+    
     document.getElementById("game-over-screen").classList.add("active");
+    
+    // Versuch das Leaderboard zu laden (falls bereits verbunden)
+    if(window.loadLeaderboard) window.loadLeaderboard(currentModeKey);
+}
+
+function submitScore() {
+    const name = document.getElementById("player-name").value;
+    if(!name) { alert("Bitte Namen eingeben!"); return; }
+    
+    playerStats.username = name; saveStats(); // Name merken
+    
+    if(window.submitScoreToDB) {
+        document.querySelector(".submit-btn").disabled = true;
+        document.querySelector(".submit-btn").innerText = "...";
+        window.submitScoreToDB(name, score, currentModeKey).then(() => {
+            document.getElementById("submit-container").style.display = "none";
+            document.getElementById("submit-message").style.display = "block";
+        });
+    } else {
+        alert("Datenbank noch nicht verbunden!");
+    }
 }
 
 function buyContinue() {
@@ -565,48 +469,17 @@ function buyContinue() {
         if(currentModeKey.includes("quiz")) nextQuizQuestion(); else loadDrag();
     }
 }
+function restartGame() { if(currentModeKey === "quiz_easy") startQuiz(4); else if(currentModeKey === "quiz_hard") startQuiz(6); else startDragDrop(); }
 
-function restartGame() {
-    if(currentModeKey === "quiz_easy") startQuiz(4);
-    else if(currentModeKey === "quiz_hard") startQuiz(6);
-    else startDragDrop();
-}
-
+/* --- FLASHCARDS & TABLE --- */
 let cardIdx=0; let flashcardDeck = []; let isRandomFlash = false;
-function startFlashcards(random){
-    isRandomFlash = random;
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById("flashcard-screen").classList.add("active");
-    if(random) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); else flashcardDeck = [...SDGS];
-    cardIdx=0; renderCardFront(); 
-}
-function renderCardFront() {
-    let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card");
-    c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`;
-    c.dataset.side = "front"; document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`;
-}
-function renderCardBack() {
-    let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card");
-    c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}">`;
-    c.dataset.side = "back";
-}
+function startFlashcards(random){ isRandomFlash = random; document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("flashcard-screen").classList.add("active"); if(random) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); else flashcardDeck = [...SDGS]; cardIdx=0; renderCardFront(); }
+function renderCardFront() { let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card"); c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`; c.dataset.side = "front"; document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`; }
+function renderCardBack() { let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card"); c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}">`; c.dataset.side = "back"; }
 function flipCard(){ const c=document.getElementById("main-card"); if (c.dataset.side === "front") renderCardBack(); else renderCardFront(); }
-function nextCard(){ 
-    cardIdx++; if(cardIdx >= 17) { if(isRandomFlash) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); cardIdx = 0; }
-    renderCardFront(); 
-}
+function nextCard(){ cardIdx++; if(cardIdx >= 17) { if(isRandomFlash) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); cardIdx = 0; } renderCardFront(); }
 function prevCard(){ cardIdx--; if(cardIdx < 0) cardIdx = 16; renderCardFront(); }
-
-function showTable(){
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById("table-screen").classList.add("active");
-    const cont = document.getElementById("table-content"); cont.innerHTML = "";
-    SDGS.forEach(s=>{
-        const row = document.createElement("div"); row.className="list-row";
-        row.innerHTML=`<div class="row-nr" style="background:${s.farbe}">${s.nr}</div><img src="${getImgUrl(s.nr)}" class="row-img"><div class="row-text">${s.titel}</div>`;
-        cont.appendChild(row);
-    });
-}
+function showTable(){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("table-screen").classList.add("active"); const cont = document.getElementById("table-content"); cont.innerHTML = ""; SDGS.forEach(s=>{ const row = document.createElement("div"); row.className="list-row"; row.innerHTML=`<div class="row-nr" style="background:${s.farbe}">${s.nr}</div><img src="${getImgUrl(s.nr)}" class="row-img"><div class="row-text">${s.titel}</div>`; cont.appendChild(row); }); }
 </script>
 </body>
 </html>
