@@ -445,14 +445,45 @@ function startDragDrop(){
     const pool = document.getElementById("drag-pool"); pool.ondragover = e => e.preventDefault(); pool.ondrop = e => handleDropOnPool(e); loadDrag();
 }
 function loadDrag(){
-    currentDragData = []; for(let i=0; i<4; i++) currentDragData.push(drawCard());
-    const zones = document.getElementById("drop-zones"); const pool = document.getElementById("drag-pool"); zones.innerHTML = ""; pool.innerHTML = "";
-    document.getElementById("check-drag-btn").style.display = "block"; document.getElementById("check-drag-btn").disabled = false; document.getElementById("next-drag-btn").style.display = "none";
+    currentDragData = [];
+    
+    // Solange ziehen, bis wir 4 EINZIGARTIGE Karten haben
+    while(currentDragData.length < 4) {
+        let card = drawCard();
+        
+        // Prüfen, ob diese SDG-Nummer schon in der aktuellen Auswahl ist
+        let isDuplicate = currentDragData.find(existing => existing.nr === card.nr);
+        
+        if (!isDuplicate) {
+            currentDragData.push(card);
+        }
+        // Falls es ein Duplikat war, passiert nichts, und die Schleife zieht erneut.
+    }
+    
+    const zones = document.getElementById("drop-zones");
+    const pool = document.getElementById("drag-pool");
+    zones.innerHTML = ""; pool.innerHTML = "";
+    
+    document.getElementById("check-drag-btn").style.display = "block";
+    document.getElementById("check-drag-btn").disabled = false;
+    document.getElementById("next-drag-btn").style.display = "none";
+
     currentDragData.forEach((s, index) => {
-        let z = document.createElement("div"); z.className = "drop-zone"; z.id = "zone-" + index; z.dataset.correctNr = s.nr; z.dataset.occupiedBy = ""; z.innerText = s.titel;
-        z.ondragover = e => e.preventDefault(); z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color")); zones.appendChild(z);
+        let z = document.createElement("div");
+        z.className = "drop-zone";
+        z.id = "zone-" + index;
+        z.dataset.correctNr = s.nr;
+        z.dataset.occupiedBy = "";
+        z.innerText = s.titel;
+        
+        z.ondragover = e => e.preventDefault();
+        z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
+        zones.appendChild(z);
     });
-    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => { createDragItem(s.nr, s.farbe, "pool"); });
+
+    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
+        createDragItem(s.nr, s.farbe, "pool");
+    });
 }
 function createDragItem(nr, color, origin) {
     let container = origin === "pool" ? document.getElementById("drag-pool") : document.getElementById(origin); if(document.getElementById("d"+nr)) return;
