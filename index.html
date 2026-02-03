@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SDG Master - Smart Leaderboard</title>
+    <title>SDG Master - Profile Edition</title>
     <style>
         :root {
             --bg-dark: #2D2D2D;
@@ -13,6 +13,20 @@
             --correct-green: #4C9F38;
             --wrong-red: #E5243B;
             --coin-gold: #FFD700;
+            --shop-btn: #3a86ff;
+            --profile-bg: #333;
+        }
+
+        body.theme-neon {
+            --bg-dark: #050505;
+            --card-bg: #1a1a2e;
+            --accent: #ff00ff;
+            --text-white: #e0e0e0;
+            --correct-green: #00ff9d;
+            --wrong-red: #ff0055;
+            --coin-gold: #00ffff;
+            --shop-btn: #ff00ff;
+            --profile-bg: #16213e;
         }
 
         body {
@@ -20,11 +34,9 @@
             background-color: var(--bg-dark);
             color: var(--text-white);
             margin: 0;
-            display: flex;
-            justify-content: center;
-            touch-action: manipulation;
-            user-select: none;
-            overflow-x: hidden;
+            display: flex; justify-content: center;
+            touch-action: manipulation; user-select: none;
+            overflow-x: hidden; transition: background 0.5s ease;
         }
 
         #app-container {
@@ -35,127 +47,135 @@
         .screen { display: none; flex-direction: column; }
         .active { display: flex; }
 
+        /* HEADER AREA */
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .currency-display { color: var(--coin-gold); font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 16px; }
+        
+        .profile-icon-btn {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--card-bg);
+            border: 2px solid var(--accent); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; font-size: 20px; position: relative;
+        }
+        .profile-icon-btn.is-guest { border-color: #666; filter: grayscale(1); }
+
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; }
         .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; margin-right: 10px;}
-        .currency-display { color: var(--coin-gold); font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 16px; }
 
         /* Menu Buttons */
         .menu-btn {
             background-color: var(--card-bg); margin: 10px 0; padding: 15px;
             border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            transition: transform 0.1s;
+            transition: transform 0.1s, border 0.3s; border: 1px solid transparent;
         }
+        .theme-neon .menu-btn { border: 1px solid var(--accent); box-shadow: 0 0 5px var(--accent); }
         .menu-btn:active { transform: scale(0.98); }
+        
         .btn-left { display: flex; flex-direction: column; }
         .btn-sub { font-size: 11px; color: #888; margin-top: 4px; }
         .achievement-star { font-size: 24px; color: #555; transition: color 0.3s; }
-        .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+        .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
 
-        /* LEADERBOARD TABS */
-        .lb-tabs { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 5px; }
-        .tab-btn {
-            flex: 1; background: var(--card-bg); border: 1px solid #555; color: #aaa;
-            padding: 10px 5px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;
+        /* SHOP UI */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .shop-item {
+            background: var(--card-bg); padding: 10px; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            border: 1px solid #555;
         }
+        .shop-item h3 { margin: 5px 0; font-size: 14px; }
+        .shop-item p { font-size: 10px; color: #aaa; margin-bottom: 8px; height: 25px; overflow: hidden;} 
+        .shop-icon { font-size: 35px; margin-bottom: 5px; }
+        
+        .shop-btn {
+            background: var(--shop-btn); color: white; border: none; padding: 5px 10px;
+            border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px;
+        }
+        .shop-btn.owned { background: #555; }
+        .shop-btn.active { background: var(--correct-green); cursor: default; }
+        .shop-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* LEADERBOARD & PROFILE MODAL */
+        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 350px; overflow-y: auto; }
+        .lb-row { display: flex; justify-content: space-between; padding: 10px 5px; border-bottom: 1px solid #444; color: #bbb; font-size: 14px; cursor: pointer; align-items: center;}
+        .lb-row:hover { background: rgba(255,255,255,0.1); }
+        .lb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; margin-right: 10px; font-size: 18px; }
+        .lb-user-info { display: flex; align-items: center; }
+        
+        .lb-tabs { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 5px; }
+        .tab-btn { flex: 1; background: var(--card-bg); border: 1px solid #555; color: #aaa; padding: 10px 5px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
         .tab-btn.active-tab { background: var(--accent); color: black; border-color: var(--accent); }
 
-        /* Quiz UI */
-        .sdg-display-box {
-            width: 100%; height: 180px; display: flex; justify-content: center; align-items: center;
-            border-radius: 12px; margin-bottom: 30px; font-size: 80px; font-weight: bold; transition: all 0.3s;
+        /* PROFILE SCREEN / MODAL */
+        #profile-screen { align-items: center; }
+        .profile-card {
+            width: 100%; background: var(--profile-bg); padding: 20px; border-radius: 15px;
+            text-align: center; margin-bottom: 20px; position: relative; border: 1px solid #555;
         }
+        .profile-avatar-big {
+            width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 15px;
+            display: flex; justify-content: center; align-items: center; font-size: 50px;
+            border: 4px solid var(--accent);
+        }
+        .profile-name { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
+        .profile-bio { font-size: 14px; color: #aaa; font-style: italic; margin-bottom: 15px; }
+        
+        .login-form { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .login-input { padding: 12px; border-radius: 8px; border: none; background: #eee; color: black; }
+        .login-btn { padding: 12px; background: var(--correct-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .switch-auth { font-size: 12px; color: #aaa; text-decoration: underline; cursor: pointer; margin-top: 10px; }
+
+        /* QUIZ & GAME */
+        .sdg-display-box { width: 100%; height: 180px; display: flex; justify-content: center; align-items: center; border-radius: 12px; margin-bottom: 30px; font-size: 80px; font-weight: bold; }
         .sdg-display-box img { max-height: 140px; border-radius: 8px; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .option-btn {
-            background-color: var(--card-bg); border: none; color: white; padding: 10px; border-radius: 6px; 
-            cursor: pointer; min-height: 90px; font-size: 13px; display: flex; align-items: center; 
-            justify-content: center; text-align: center; line-height: 1.2; transition: all 0.2s;
-        }
-        .option-btn:disabled { cursor: default; }
-
-        /* Game Over & Input */
-        #game-over-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 100;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box; text-align: center; overflow-y: auto;
-        }
-        #game-over-screen.active { display: flex; }
+        .option-btn { background-color: var(--card-bg); border: none; color: white; padding: 10px; border-radius: 6px; cursor: pointer; min-height: 90px; font-size: 13px; display: flex; align-items: center; justify-content: center; text-align: center; }
         
-        .go-title { font-size: 32px; color: var(--wrong-red); margin-bottom: 20px; font-weight: bold; }
-        .go-stats { margin-bottom: 20px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
-        .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 18px; }
-
-        .name-input-container { width: 100%; margin-bottom: 20px; display: flex; gap: 10px; }
-        .name-input { 
-            flex-grow: 1; padding: 10px; border-radius: 5px; border: none; font-size: 16px; 
-            background: #eee; color: #333; font-family: inherit;
-        }
-        .submit-btn {
-            background: var(--correct-green); color: white; border: none; padding: 0 20px; 
-            border-radius: 5px; font-weight: bold; cursor: pointer;
-        }
-        .submit-btn:disabled { background: #555; cursor: not-allowed; }
-
-        /* Leaderboard Table */
-        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 350px; overflow-y: auto; }
-        .lb-header { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px;}
-        .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; color: #bbb; font-size: 14px; }
-        .lb-row:nth-child(1) { color: #FFD700; } 
-        .lb-row:nth-child(2) { color: #C0C0C0; } 
-        .lb-row:nth-child(3) { color: #CD7F32; } 
-
-        .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
-        .btn-continue { background: var(--accent); color: black; }
-        .btn-restart { background: var(--card-bg); color: white; border: 1px solid #666; }
-        .btn-menu { background: transparent; color: #aaa; }
-
         /* Drag & Drop */
         .drop-zone-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .drop-zone { 
-            background: var(--card-bg); min-height: 130px; border: 2px dashed #666; 
-            border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; text-align: center; padding: 10px; font-size: 12px; position: relative;
-        }
+        .drop-zone { background: var(--card-bg); min-height: 130px; border: 2px dashed #666; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; font-size: 12px; }
         .drop-zone.filled { border-style: solid; border-color: transparent; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
-        .shake-it { animation: shake 0.4s; border-color: var(--wrong-red) !important; }
-
         .drag-items { display: flex; justify-content: space-around; padding: 15px; background: #333; border-radius: 8px; min-height: 70px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .drag-box { 
-            width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; 
-            font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0; z-index: 10;
-        }
-        .drop-zone .drag-box { pointer-events: auto; cursor: grab; }
-        .action-btn { background-color: var(--accent); color: black; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
+        .drag-box { width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0; z-index: 10; }
+        .shake-it { animation: shake 0.4s; border-color: var(--wrong-red) !important; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+
+        /* Game Over */
+        #game-over-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
+        #game-over-screen.active { display: flex; }
+        .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
         .correct { background-color: var(--correct-green) !important; color: white !important; }
         .wrong { background-color: var(--wrong-red) !important; color: white !important; }
-        
-        /* Flashcards / List */
-        .flashcard { width: 100%; max-width: 300px; height: 400px; margin: 20px auto; background: white; color: black; border-radius: 15px; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .flashcard img { border-radius: 10px; width: 280px; height: auto; }
         .list-row { display: flex; background: var(--card-bg); margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden; }
         .row-nr { width: 45px; height: 60px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
-        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; object-fit: contain; }
+        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; object-fit: contain; }
         .row-text { font-size: 13px; padding-right: 10px; flex-grow: 1; }
+        .flashcard { width: 100%; max-width: 300px; height: 400px; margin: 20px auto; background: white; color: black; border-radius: 15px; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; padding: 10px; }
+        .flashcard img { border-radius: 10px; width: 280px; height: auto; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="menu-screen" class="screen active">
-        <h1 style="text-align:center; color:var(--accent);">SDG MASTER</h1>
+        <div class="header-area">
+            <h2 style="margin:0; color:var(--accent);">SDG MASTER</h2>
+            <div id="profile-btn" class="profile-icon-btn is-guest" onclick="openProfile()">👤</div>
+        </div>
+
         <div style="text-align:center; margin-bottom:20px;">
             <span class="currency-display" style="justify-content:center; font-size:20px;">
                 🪙 <span id="menu-coins">0</span>
             </span>
-            <div style="font-size:12px; color:#888; margin-top:5px;">Sammle Sterne & miss dich global!</div>
+            <div style="font-size:12px; color:#888; margin-top:5px;" id="welcome-msg">Gast-Modus (Nicht gespeichert)</div>
         </div>
         
-        <div class="menu-btn" onclick="openGlobalLeaderboard()">
-            <div class="btn-left"><span>🏆 Globales Leaderboard</span></div>
-            <span style="font-size:24px;">»</span>
+        <div style="display:flex; gap:10px;">
+            <div class="menu-btn" onclick="openGlobalLeaderboard()" style="flex:1;">
+                <div class="btn-left"><span>🏆 Rangliste</span></div>
+            </div>
+            <div class="menu-btn" onclick="openShop()" style="flex:1; background: #333;">
+                <div class="btn-left"><span style="color:var(--coin-gold)">🛒 Shop</span></div>
+            </div>
         </div>
 
         <div style="border-top:1px solid #555; margin:10px 0;"></div>
@@ -178,86 +198,87 @@
         <div class="menu-btn" onclick="showTable()">Tabelle lernen</div>
     </div>
 
+    <div id="profile-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Profil</span></div>
+        
+        <div id="profile-view" style="display:none; width:100%;">
+            <div class="profile-card">
+                <div id="p-avatar" class="profile-avatar-big">👤</div>
+                <div id="p-name" class="profile-name">Spieler</div>
+                <div id="p-bio" class="profile-bio">SDG Enthusiast</div>
+                <div style="display:flex; justify-content:center; gap:15px; font-size:14px;">
+                    <div>🪙 <span id="p-coins">0</span></div>
+                    <div>🏆 <span id="p-total-best">0</span></div>
+                </div>
+            </div>
+            <button class="go-btn btn-restart" onclick="doLogout()">Abmelden</button>
+        </div>
+
+        <div id="public-profile-view" style="display:none; width:100%;">
+            <div class="profile-card" style="border-color: var(--accent);">
+                <div id="pub-avatar" class="profile-avatar-big">👤</div>
+                <div id="pub-name" class="profile-name">Name</div>
+                <div id="pub-bio" class="profile-bio">...</div>
+                <div style="display:flex; justify-content:center; gap:15px; font-size:14px;">
+                    <div>🏆 Highscore (Easy): <span id="pub-score-e">0</span></div>
+                </div>
+            </div>
+            <button class="go-btn btn-menu" onclick="closePublicProfile()">Zurück zur Liste</button>
+        </div>
+
+        <div id="login-view" style="width:100%;">
+            <h2 style="text-align:center;">Anmelden / Registrieren</h2>
+            <p style="text-align:center; font-size:12px; color:#aaa; margin-bottom:20px;">
+                Erstelle ein Konto, um deinen Fortschritt, Münzen und Items zu speichern und dich im Leaderboard zu zeigen.
+            </p>
+            <div class="login-form">
+                <input type="text" id="auth-name" class="login-input" placeholder="Benutzername (Öffentlich)" maxlength="12">
+                <input type="password" id="auth-pass" class="login-input" placeholder="Passwort (z.B. 1234)">
+                <button class="login-btn" onclick="handleAuth()">Anmelden / Erstellen</button>
+            </div>
+            <div id="auth-msg" style="text-align:center; color: var(--wrong-red); margin-top:10px; font-size:12px;"></div>
+        </div>
+    </div>
+
+    <div id="shop-screen" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">←</button>
+            <span class="currency-display">🪙 <span id="shop-coins">0</span></span>
+        </div>
+        
+        <div class="lb-tabs">
+            <button class="tab-btn active-tab" onclick="filterShop('all', this)">Alles</button>
+            <button class="tab-btn" onclick="filterShop('avatar', this)">Avatare</button>
+            <button class="tab-btn" onclick="filterShop('theme', this)">Styles</button>
+        </div>
+
+        <div id="shop-container" class="shop-grid"></div>
+    </div>
+
     <div id="leaderboard-screen" class="screen">
         <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Ranglisten</span></div>
-        
         <div class="lb-tabs">
             <button class="tab-btn active-tab" onclick="switchLBTab('quiz_easy', this)">Normal</button>
             <button class="tab-btn" onclick="switchLBTab('quiz_hard', this)">Schwer</button>
             <button class="tab-btn" onclick="switchLBTab('drag', this)">Drag & Drop</button>
         </div>
-
         <div class="leaderboard">
-            <div class="lb-header">
-                <span>Platzierung</span>
-                <span>Punkte</span>
-            </div>
-            <div id="global-lb-content" style="text-align:center; padding:10px; color:#666;">
-                Lade Daten...
-            </div>
+            <div id="global-lb-content" style="text-align:center; padding:10px; color:#666;">Lade Daten...</div>
         </div>
     </div>
 
-    <div id="quiz-screen" class="screen">
-        <div class="top-bar">
-            <button class="back-btn" onclick="showMenu()">←</button>
-            <span id="lives-label-quiz" style="font-size:20px; letter-spacing:2px;">❤️❤️❤️</span>
-            <span class="currency-display">🪙 <span id="ingame-coins-quiz">0</span></span>
-            <span id="score-label" style="font-weight:bold;">0</span>
-        </div>
-        <div id="quiz-display" class="sdg-display-box"></div>
-        <div id="quiz-options" class="options-grid"></div>
-    </div>
-
-    <div id="drag-screen" class="screen">
-        <div class="top-bar">
-            <button class="back-btn" onclick="showMenu()">←</button>
-            <span id="lives-label-drag" style="font-size:20px; letter-spacing:2px;">❤️❤️❤️</span>
-            <span class="currency-display">🪙 <span id="ingame-coins-drag">0</span></span>
-            <span id="score-label-drag" style="font-weight:bold;">0</span>
-        </div>
-        <div id="drop-zones" class="drop-zone-container"></div>
-        <div id="drag-pool" class="drag-items"></div>
-        <button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button>
-        <button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button>
-    </div>
-
-    <div id="flashcard-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="card-progress"></span></div>
-        <div id="main-card" class="flashcard" onclick="flipCard()"></div>
-        <div style="display:flex; justify-content: space-around; margin-top: 20px;">
-            <button class="option-btn" onclick="prevCard()" style="min-height: auto; width: 45%;">←</button>
-            <button class="option-btn" onclick="nextCard()" style="min-height: auto; width: 45%;">→</button>
-        </div>
-    </div>
-    <div id="table-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button></div>
-        <div id="table-content"></div>
-    </div>
+    <div id="quiz-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="lives-label-quiz"></span><span class="currency-display">🪙 <span id="ingame-coins-quiz"></span></span><span id="score-label"></span></div><div id="quiz-display" class="sdg-display-box"></div><div id="quiz-options" class="options-grid"></div></div>
+    <div id="drag-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="lives-label-drag"></span><span class="currency-display">🪙 <span id="ingame-coins-drag"></span></span><span id="score-label-drag"></span></div><div id="drop-zones" class="drop-zone-container"></div><div id="drag-pool" class="drag-items"></div><button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button><button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button></div>
+    <div id="flashcard-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="card-progress"></span></div><div id="main-card" class="flashcard" onclick="flipCard()"></div><div style="display:flex; justify-content: space-around; margin-top: 20px;"><button class="option-btn" onclick="prevCard()" style="min-height: auto; width: 45%;">←</button><button class="option-btn" onclick="nextCard()" style="min-height: auto; width: 45%;">→</button></div></div>
+    <div id="table-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button></div><div id="table-content"></div></div>
 
     <div id="game-over-screen">
         <div class="go-title">GAME OVER</div>
         <div class="go-stats">
-            <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
-            <div class="stat-row"><span>Persönl. Rekord:</span> <span id="go-best" style="color:var(--accent)">0</span></div>
+            <div class="stat-row"><span>Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
+            <div class="stat-row"><span>Rekord:</span> <span id="go-best" style="color:var(--accent)">0</span></div>
         </div>
-
-        <div class="name-input-container" id="submit-container">
-            <input type="text" id="player-name" class="name-input" placeholder="Dein Name" maxlength="12">
-            <button class="submit-btn" onclick="submitScore()">SENDEN</button>
-        </div>
-        <div id="submit-message" style="color:#aaa; margin-bottom:10px; font-size:13px; display:none;">Score gesendet!</div>
-
-        <div class="leaderboard">
-            <div class="lb-header">
-                <span>Globales Leaderboard</span>
-                <span>Punkte</span>
-            </div>
-            <div id="leaderboard-content" style="text-align:center; padding:10px; color:#666;">
-                Lade Daten...
-            </div>
-        </div>
-
+        <div style="margin-bottom:10px; font-size:12px; color:#aaa;">Dein Score wurde gespeichert (falls angemeldet).</div>
         <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
         <button class="go-btn btn-restart" onclick="restartGame()">Neuer Versuch</button>
         <button class="go-btn btn-menu" onclick="showMenu()">Zum Hauptmenü</button>
@@ -265,10 +286,10 @@
 </div>
 
 <script type="module">
-    // !!! WICHTIG: updateDoc WIRD HIER IMPORTIERT !!!
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, setDoc, getDoc, doc, updateDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+    // --- HIER DEINE CONFIG EINFÜGEN ---
     const firebaseConfig = {
         apiKey: "AIzaSyCxA2tDZMu57sko9UN_uMc8OHNBErAAwVs",
         authDomain: "sdg-quiz-50315.firebaseapp.com",
@@ -284,107 +305,188 @@
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         console.log("Firebase verbunden!");
-    } catch(e) {
-        console.error("Firebase Fehler:", e);
-    }
+    } catch(e) { console.error(e); }
 
-    // UPDATE: SMART SUBMIT LOGIC (PRÜFEN VOR SPEICHERN)
-    window.submitScoreToDB = async function(name, score, mode) {
+    // AUTH FUNKTIONEN (Exposed)
+    window.doLogin = async function(username, password) {
         if(!db) return;
-        try {
-            // 1. Prüfen ob Eintrag existiert
-            const q = query(
-                collection(db, "leaderboard"), 
-                where("name", "==", name), 
-                where("mode", "==", mode)
-            );
-            const snapshot = await getDocs(q);
+        const userRef = doc(db, "users", username);
+        const docSnap = await getDoc(userRef);
 
-            if (snapshot.empty) {
-                // FALL 1: Spieler existiert noch nicht -> Neu anlegen
-                await addDoc(collection(db, "leaderboard"), {
-                    name: name,
-                    score: score,
-                    mode: mode,
-                    timestamp: new Date()
-                });
-                return "new"; // Success
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.password === password) {
+                // Login erfolgreich -> Daten laden
+                window.importCloudData(data);
+                return true;
             } else {
-                // FALL 2: Spieler existiert -> Score vergleichen
-                const existingDoc = snapshot.docs[0];
-                const oldScore = existingDoc.data().score;
-
-                if (score > oldScore) {
-                    // Neuer Score ist besser -> Update
-                    await updateDoc(existingDoc.ref, {
-                        score: score,
-                        timestamp: new Date()
-                    });
-                    return "updated"; // Success
-                } else {
-                    // Alter Score war besser -> Nichts tun
-                    return "lower"; // Kein Update nötig
-                }
+                throw new Error("Falsches Passwort");
             }
-        } catch (e) {
-            console.error("Fehler beim Senden: ", e);
-            throw e; // Fehler weiterwerfen für UI Handling
-        } finally {
-             // Egal was passiert ist, Liste neu laden
-             window.loadLeaderboard(mode, "leaderboard-content"); 
+        } else {
+            // Registrieren (Neues Dokument)
+            // Wir nehmen die lokalen Stats als Startwert
+            const newUserData = {
+                username: username,
+                password: password,
+                coins: window.getPlayerStats().coins,
+                scores: window.getPlayerStats().scores,
+                inventory: window.getPlayerStats().inventory,
+                activeTheme: window.getPlayerStats().activeTheme,
+                activeAvatar: window.getPlayerStats().activeAvatar || "👤",
+                bio: "Neu hier!",
+                joined: new Date()
+            };
+            await setDoc(userRef, newUserData);
+            window.importCloudData(newUserData);
+            return true;
         }
     };
 
-    window.loadLeaderboard = async function(mode, containerId = "leaderboard-content") {
-        const lbContent = document.getElementById(containerId);
-        if(!lbContent) return;
-        if(!db) { lbContent.innerHTML = "Keine Datenbank-Verbindung."; return; }
+    // SYNC FUNKTION (Speichert aktuellen Stand in die Cloud)
+    window.syncToCloud = async function() {
+        const stats = window.getPlayerStats();
+        if (!stats.username || !db) return; // Nur wenn eingeloggt
         
+        try {
+            const userRef = doc(db, "users", stats.username);
+            await updateDoc(userRef, {
+                coins: stats.coins,
+                scores: stats.scores,
+                inventory: stats.inventory,
+                activeTheme: stats.activeTheme,
+                activeAvatar: stats.activeAvatar || "👤"
+            });
+            // Auch Leaderboard Entries updaten? 
+            // Das machen wir beim Score-Submit separat für Effizienz.
+        } catch(e) { console.error("Sync error", e); }
+    };
+
+    // LEADERBOARD MIT PROFIL-CLICK
+    window.loadLeaderboard = async function(mode, containerId) {
+        const lbContent = document.getElementById(containerId);
+        if(!lbContent || !db) return;
         lbContent.innerHTML = "Lade...";
         
         try {
             const q = query(collection(db, "leaderboard"), where("mode", "==", mode), orderBy("score", "desc"), limit(20));
             const querySnapshot = await getDocs(q);
-            
             let html = "";
-            let data = [];
             
-            querySnapshot.forEach((doc) => { data.push(doc.data()); });
-            
-            data.forEach((entry, index) => {
-                let rank = index + 1;
-                html += `<div class="lb-row"><span>#${rank} ${entry.name}</span><span>${entry.score}</span></div>`;
+            querySnapshot.forEach((doc) => {
+                const d = doc.data();
+                const avatar = d.avatar || "👤"; 
+                // Wenn man auf die Zeile klickt -> Profil öffnen
+                html += `<div class="lb-row" onclick="viewPublicProfile('${d.name}')">
+                    <div class="lb-user-info"><div class="lb-avatar">${avatar}</div><span>${d.name}</span></div>
+                    <span>${d.score}</span>
+                </div>`;
             });
-
-            if(data.length === 0) html = "<div style='padding:10px'>Noch keine Einträge.</div>";
+            if(!html) html = "<div style='padding:10px'>Keine Einträge.</div>";
             lbContent.innerHTML = html;
+        } catch(e) { lbContent.innerHTML = "Ladefehler (Index?)"; console.error(e); }
+    };
 
-        } catch(e) {
-            console.error("Ladefehler:", e);
-            lbContent.innerHTML = "Ladefehler (Index fehlt?).";
+    // PROFIL EINES ANDEREN LADEN
+    window.fetchUserProfile = async function(username) {
+        if(!db) return null;
+        const docSnap = await getDoc(doc(db, "users", username));
+        return docSnap.exists() ? docSnap.data() : null;
+    };
+
+    // SCORE SUBMIT MIT AVATAR
+    window.submitScoreToDB = async function(name, score, mode, avatar) {
+        if(!db) return;
+        // Gleiche Logik wie vorher, aber speichert Avatar mit
+        const q = query(collection(db, "leaderboard"), where("name", "==", name), where("mode", "==", mode));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+            await addDoc(collection(db, "leaderboard"), { name, score, mode, avatar, timestamp: new Date() });
+        } else {
+            const docRef = snapshot.docs[0];
+            if (score > docRef.data().score) {
+                await updateDoc(docRef.ref, { score, avatar, timestamp: new Date() }); // Auch Avatar updaten falls geändert
+            }
         }
+        // Background Sync user stats
+        window.syncToCloud();
     };
 </script>
 
 <script>
-/* --- GAME LOGIC --- */
+/* --- DATA & CONFIG --- */
 const SDGS = [
     {nr: 1, farbe: "#E5243B", titel: "Keine Armut"}, {nr: 2, farbe: "#DDA63A", titel: "Kein Hunger"}, {nr: 3, farbe: "#4C9F38", titel: "Gesundheit und Wohlergehen"}, {nr: 4, farbe: "#C5192D", titel: "Hochwertige Bildung"}, {nr: 5, farbe: "#FF3A21", titel: "Geschlechtergleichstellung"}, {nr: 6, farbe: "#26BDE2", titel: "Sauberes Wasser und Sanitäreinrichtungen"}, {nr: 7, farbe: "#FCC30B", titel: "Bezahlbare und saubere Energie"}, {nr: 8, farbe: "#A21942", titel: "Menschenwürdige Arbeit und Wirtschaftswachstum"}, {nr: 9, farbe: "#FD6925", titel: "Industrie, Innovation und Infrastruktur"}, {nr: 10, farbe: "#DD1367", titel: "Weniger Ungleichheiten"}, {nr: 11, farbe: "#FD9D24", titel: "Nachhaltige Städte und Gemeinden"}, {nr: 12, farbe: "#BF8B2E", titel: "Nachhaltige/r Konsum und Produktion"}, {nr: 13, farbe: "#3F7E44", titel: "Maßnahmen zum Klimaschutz"}, {nr: 14, farbe: "#0A97D9", titel: "Leben unter Wasser"}, {nr: 15, farbe: "#56C02B", titel: "Leben an Land"}, {nr: 16, farbe: "#00689D", titel: "Frieden, Gerechtigkeit und starke Institutionen"}, {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
 ];
+
+const SHOP_ITEMS = [
+    { id: "extra_life", name: "Extra Herz ❤️", type: "perk", desc: "Starte mit 4 Leben.", cost: 50, icon: "❤️" },
+    { id: "theme_neon", name: "Neon Style", type: "theme", desc: "Cyberpunk Look.", cost: 100, icon: "💎" },
+    { id: "theme_default", name: "Standard", type: "theme", desc: "Classic Look.", cost: 0, icon: "🎨" },
+    { id: "av_alien", name: "Alien", type: "avatar", desc: "Avatar", cost: 20, icon: "👽" },
+    { id: "av_robot", name: "Robot", type: "avatar", desc: "Avatar", cost: 20, icon: "🤖" },
+    { id: "av_crown", name: "King", type: "avatar", desc: "Avatar", cost: 50, icon: "👑" },
+    { id: "av_fox", name: "Fox", type: "avatar", desc: "Avatar", cost: 30, icon: "🦊" }
+];
+
 const TARGETS = { easy: 30, hard: 15, drag: 50 };
 let continueCost = 10;
-let playerStats = { coins: 0, scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 } };
 
+/* --- STATE & AUTH LOGIC --- */
+let playerStats = { 
+    username: null, // null = Gast
+    coins: 0, 
+    scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 },
+    inventory: ["theme_default", "av_default"],
+    activeTheme: "theme_default",
+    activeAvatar: "👤"
+};
+
+// Start
 if(localStorage.getItem("sdgAppData")) {
-    let data = JSON.parse(localStorage.getItem("sdgAppData"));
-    if(!data.scores) data.scores = { quiz_easy: data.highScore || 0, quiz_hard: 0, drag: 0 };
-    playerStats = data;
+    playerStats = JSON.parse(localStorage.getItem("sdgAppData"));
+    // Fix falls Felder fehlen
+    if(!playerStats.inventory) playerStats.inventory = ["theme_default", "av_default"];
+    if(!playerStats.activeAvatar) playerStats.activeAvatar = "👤";
 }
-function saveStats() { localStorage.setItem("sdgAppData", JSON.stringify(playerStats)); updateUIStats(); }
+applyTheme(playerStats.activeTheme);
+updateUIStats();
+
+// Wird von Firebase aufgerufen nach Login
+window.importCloudData = function(data) {
+    playerStats = data; // Überschreiben
+    saveStats();
+    updateProfileUI();
+    alert(`Willkommen zurück, ${data.username}!`);
+    showMenu(); // Refresh UI
+}
+
+// Helper für Firebase
+window.getPlayerStats = function() { return playerStats; }
+
+function saveStats() {
+    localStorage.setItem("sdgAppData", JSON.stringify(playerStats));
+    updateUIStats();
+}
+
 function updateUIStats() {
     document.getElementById("menu-coins").innerText = playerStats.coins;
+    document.getElementById("shop-coins").innerText = playerStats.coins;
     document.getElementById("ingame-coins-quiz").innerText = playerStats.coins;
     document.getElementById("ingame-coins-drag").innerText = playerStats.coins;
+    
+    // Header anpassen
+    const pBtn = document.getElementById("profile-btn");
+    const welcome = document.getElementById("welcome-msg");
+    if (playerStats.username) {
+        pBtn.classList.remove("is-guest");
+        pBtn.innerText = playerStats.activeAvatar;
+        welcome.innerText = `Angemeldet als ${playerStats.username}`;
+    } else {
+        pBtn.classList.add("is-guest");
+        pBtn.innerText = "👤";
+        welcome.innerText = "Gast-Modus (Nicht gespeichert)";
+    }
+
     updateStar("star-quiz-easy", playerStats.scores.quiz_easy, TARGETS.easy);
     updateStar("star-quiz-hard", playerStats.scores.quiz_hard, TARGETS.hard);
     updateStar("star-drag", playerStats.scores.drag, TARGETS.drag);
@@ -393,20 +495,185 @@ function updateStar(id, score, target) {
     const el = document.getElementById(id);
     if(score >= target) { el.innerText = "★"; el.classList.add("unlocked"); } else { el.innerText = "☆"; el.classList.remove("unlocked"); }
 }
-updateUIStats();
+
+/* --- PROFILE & AUTH UI --- */
+function openProfile() {
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("profile-screen").classList.add("active");
+    document.getElementById("public-profile-view").style.display = "none";
+    updateProfileUI();
+}
+
+function updateProfileUI() {
+    if (playerStats.username) {
+        // Logged In
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("profile-view").style.display = "block";
+        document.getElementById("p-name").innerText = playerStats.username;
+        document.getElementById("p-avatar").innerText = playerStats.activeAvatar;
+        document.getElementById("p-coins").innerText = playerStats.coins;
+        document.getElementById("p-total-best").innerText = Math.max(playerStats.scores.quiz_easy, playerStats.scores.drag);
+    } else {
+        // Guest
+        document.getElementById("login-view").style.display = "block";
+        document.getElementById("profile-view").style.display = "none";
+    }
+}
+
+async function handleAuth() {
+    const name = document.getElementById("auth-name").value.trim();
+    const pass = document.getElementById("auth-pass").value.trim();
+    const msg = document.getElementById("auth-msg");
+    
+    if(!name || !pass) { msg.innerText = "Name & Passwort benötigt!"; return; }
+    if(name.length > 12) { msg.innerText = "Name zu lang (max 12)."; return; }
+
+    msg.innerText = "Verbinde...";
+    
+    try {
+        if(window.doLogin) {
+            await window.doLogin(name, pass);
+            msg.innerText = "";
+        } else {
+            msg.innerText = "Datenbank nicht bereit.";
+        }
+    } catch(e) {
+        msg.innerText = "Fehler: " + e.message;
+    }
+}
+
+function doLogout() {
+    playerStats.username = null; // Logout lokal
+    // Reset auf defaults or keep local? Reset safer.
+    playerStats.inventory = ["theme_default", "av_default"];
+    playerStats.activeTheme = "theme_default";
+    applyTheme("theme_default");
+    saveStats();
+    updateProfileUI();
+}
+
+// PUBLIC PROFILE VIEWER
+async function viewPublicProfile(name) {
+    if (name === playerStats.username) { openProfile(); return; } // Eigenes Profil
+    
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("profile-screen").classList.add("active");
+    
+    document.getElementById("login-view").style.display = "none";
+    document.getElementById("profile-view").style.display = "none";
+    const pubView = document.getElementById("public-profile-view");
+    pubView.style.display = "block";
+    
+    // Lade daten
+    document.getElementById("pub-name").innerText = "Lade...";
+    document.getElementById("pub-avatar").innerText = "⏳";
+    
+    if(window.fetchUserProfile) {
+        const user = await window.fetchUserProfile(name);
+        if(user) {
+            document.getElementById("pub-name").innerText = user.username;
+            document.getElementById("pub-avatar").innerText = user.activeAvatar || "👤";
+            document.getElementById("pub-bio").innerText = user.bio || "Spieler";
+            document.getElementById("pub-score-e").innerText = user.scores.quiz_easy || 0;
+        } else {
+            document.getElementById("pub-name").innerText = "Nicht gefunden";
+        }
+    }
+}
+function closePublicProfile() { openGlobalLeaderboard(); }
+
+/* --- SHOP --- */
+function openShop() {
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("shop-screen").classList.add("active");
+    renderShop("all");
+}
+
+function filterShop(type, btn) {
+    document.querySelectorAll('#shop-screen .tab-btn').forEach(b => b.classList.remove('active-tab'));
+    btn.classList.add('active-tab');
+    renderShop(type);
+}
+
+function renderShop(filter) {
+    const container = document.getElementById("shop-container");
+    container.innerHTML = "";
+    
+    SHOP_ITEMS.forEach(item => {
+        if(filter !== "all" && item.type !== filter) return;
+
+        const el = document.createElement("div");
+        el.className = "shop-item";
+        
+        const owned = playerStats.inventory.includes(item.id);
+        let active = false;
+        if(item.type === "theme") active = playerStats.activeTheme === item.id;
+        if(item.type === "avatar") active = playerStats.activeAvatar === item.icon;
+        if(item.type === "perk" && owned) active = true;
+
+        let btnText = item.cost + " 🪙";
+        let btnClass = "shop-btn";
+        let action = `buyItem('${item.id}', ${item.cost})`;
+        let disabled = "";
+
+        if (owned) {
+            if (item.type === "perk") {
+                btnText = "Aktiv"; btnClass += " active"; action = "";
+            } else {
+                if (active) { btnText = "Ausgerüstet"; btnClass += " active"; action = ""; }
+                else { btnText = "Ausrüsten"; btnClass += " owned"; action = `equipItem('${item.id}')`; }
+            }
+        } else if (playerStats.coins < item.cost) {
+            disabled = "disabled";
+        }
+
+        el.innerHTML = `<div class="shop-icon">${item.icon}</div><h3>${item.name}</h3><p>${item.desc}</p><button class="${btnClass}" onclick="${action}" ${disabled}>${btnText}</button>`;
+        container.appendChild(el);
+    });
+}
+
+function buyItem(id, cost) {
+    if (playerStats.coins >= cost) {
+        playerStats.coins -= cost;
+        playerStats.inventory.push(id);
+        saveStats();
+        if(window.syncToCloud) window.syncToCloud(); // Auto Save
+        renderShop("all"); // Refresh
+    }
+}
+
+function equipItem(id) {
+    const item = SHOP_ITEMS.find(i => i.id === id);
+    if (item) {
+        if (item.type === "theme") {
+            playerStats.activeTheme = id;
+            applyTheme(id);
+        } else if (item.type === "avatar") {
+            playerStats.activeAvatar = item.icon;
+        }
+        saveStats();
+        if(window.syncToCloud) window.syncToCloud();
+        renderShop("all");
+    }
+}
+
+function applyTheme(id) {
+    document.body.className = ""; 
+    if (id === "theme_neon") document.body.classList.add("theme-neon");
+}
+
+/* --- GAME LOGIC (Quiz, Drag, etc. SAME AS BEFORE) --- */
 let masterDeck = []; function resetDeck() { masterDeck = [...SDGS].sort(() => Math.random() - 0.5); } function drawCard() { if(masterDeck.length === 0) resetDeck(); return masterDeck.pop(); }
 let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy"; 
+
 function getImgUrl(nr) { const padded = nr.toString().padStart(2, "0"); return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`; }
 function showMenu(){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("menu-screen").classList.add("active"); updateUIStats(); }
-function updateLivesDisplay() { let hearts = ""; for(let i=0; i<lives; i++) hearts += "❤️"; for(let i=lives; i<3; i++) hearts += "🖤"; document.getElementById("lives-label-quiz").innerText = hearts; document.getElementById("lives-label-drag").innerText = hearts; }
 
-// --- GLOBAL LEADERBOARD FUNCTIONS ---
 function openGlobalLeaderboard() {
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("leaderboard-screen").classList.add("active");
     switchLBTab('quiz_easy', document.querySelector('.tab-btn')); 
 }
-
 function switchLBTab(mode, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
     btn.classList.add('active-tab');
@@ -414,8 +681,9 @@ function switchLBTab(mode, btn) {
 }
 
 function startQuiz(n){
-    quizModeN = n; currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; score = 0; lives = 3; resetDeck();
-    document.getElementById("score-label").innerText = score; updateLivesDisplay();
+    quizModeN = n; currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; score = 0; 
+    lives = playerStats.inventory.includes("extra_life") ? 4 : 3;
+    resetDeck(); document.getElementById("score-label").innerText = score; updateLivesDisplay();
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("quiz-screen").classList.add("active");
     nextQuizQuestion();
 }
@@ -438,53 +706,30 @@ function nextQuizQuestion(){
         }; grid.appendChild(b);
     });
 }
+function updateLivesDisplay() { 
+    let hearts = ""; let maxLives = playerStats.inventory.includes("extra_life") ? 4 : 3;
+    for(let i=0; i<lives; i++) hearts += "❤️"; for(let i=lives; i<maxLives; i++) hearts += "🖤"; 
+    document.getElementById("lives-label-quiz").innerText = hearts; document.getElementById("lives-label-drag").innerText = hearts; 
+}
 let currentDragData = [];
 function startDragDrop(){
-    currentModeKey = "drag"; score = 0; lives = 3; resetDeck(); document.getElementById("score-label-drag").innerText = score; updateLivesDisplay();
+    currentModeKey = "drag"; score = 0; lives = playerStats.inventory.includes("extra_life") ? 4 : 3;
+    resetDeck(); document.getElementById("score-label-drag").innerText = score; updateLivesDisplay();
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("drag-screen").classList.add("active");
     const pool = document.getElementById("drag-pool"); pool.ondragover = e => e.preventDefault(); pool.ondrop = e => handleDropOnPool(e); loadDrag();
 }
 function loadDrag(){
-    currentDragData = [];
-    
-    // Solange ziehen, bis wir 4 EINZIGARTIGE Karten haben
-    while(currentDragData.length < 4) {
-        let card = drawCard();
-        
-        // Prüfen, ob diese SDG-Nummer schon in der aktuellen Auswahl ist
-        let isDuplicate = currentDragData.find(existing => existing.nr === card.nr);
-        
-        if (!isDuplicate) {
-            currentDragData.push(card);
-        }
-        // Falls es ein Duplikat war, passiert nichts, und die Schleife zieht erneut.
-    }
-    
-    const zones = document.getElementById("drop-zones");
-    const pool = document.getElementById("drag-pool");
-    zones.innerHTML = ""; pool.innerHTML = "";
-    
-    document.getElementById("check-drag-btn").style.display = "block";
-    document.getElementById("check-drag-btn").disabled = false;
-    document.getElementById("next-drag-btn").style.display = "none";
-
+    currentDragData = []; while(currentDragData.length < 4) { let card = drawCard(); let isDuplicate = currentDragData.find(existing => existing.nr === card.nr); if (!isDuplicate) { currentDragData.push(card); } }
+    const zones = document.getElementById("drop-zones"); const pool = document.getElementById("drag-pool"); zones.innerHTML = ""; pool.innerHTML = "";
+    document.getElementById("check-drag-btn").style.display = "block"; document.getElementById("check-drag-btn").disabled = false; document.getElementById("next-drag-btn").style.display = "none";
     currentDragData.forEach((s, index) => {
-        let z = document.createElement("div");
-        z.className = "drop-zone";
-        z.id = "zone-" + index;
-        z.dataset.correctNr = s.nr;
-        z.dataset.occupiedBy = "";
-        z.innerText = s.titel;
-        
-        z.ondragover = e => e.preventDefault();
-        z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
-        zones.appendChild(z);
+        let z = document.createElement("div"); z.className = "drop-zone"; z.id = "zone-" + index; z.dataset.correctNr = s.nr; z.dataset.occupiedBy = ""; z.innerText = s.titel;
+        z.onclick = () => { if(z.classList.contains("filled") && !z.classList.contains("correct") && !z.classList.contains("wrong")) { ejectItemFromZone(z); } };
+        z.ondragover = e => e.preventDefault(); z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color")); zones.appendChild(z);
     });
-
-    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
-        createDragItem(s.nr, s.farbe, "pool");
-    });
+    [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => { createDragItem(s.nr, s.farbe, "pool"); });
 }
+function ejectItemFromZone(zone) { let nr = zone.dataset.occupiedBy; let color = zone.dataset.color; zone.innerText = zone.dataset.originalText || zone.innerText.split('\n')[1] || zone.innerText; zone.classList.remove("filled"); zone.dataset.occupiedBy = ""; createDragItem(nr, color, "pool"); }
 function createDragItem(nr, color, origin) {
     let container = origin === "pool" ? document.getElementById("drag-pool") : document.getElementById(origin); if(document.getElementById("d"+nr)) return;
     let box = document.createElement("div"); box.id = "d" + nr; box.className = "drag-box"; box.style.backgroundColor = color; box.innerText = nr; box.draggable = true;
@@ -496,7 +741,7 @@ function createDragItem(nr, color, origin) {
 }
 function updatePosition(el, touch) { el.style.left = (touch.clientX - 25) + 'px'; el.style.top = (touch.clientY - 25) + 'px'; }
 function handleDropOnPool(e, isTouch=false) {
-    e.preventDefault(); let nr = e.dataTransfer.getData("nr"); let color = e.dataTransfer.getData("color"); let sourceId = isTouch ? e.dataTransfer.getData("sourceId") : e.dataTransfer.getData("sourceId"); 
+    e.preventDefault(); let nr = isTouch ? e.dataTransfer.getData("nr") : e.dataTransfer.getData("nr"); let color = isTouch ? e.dataTransfer.getData("color") : e.dataTransfer.getData("color"); let sourceId = isTouch ? e.dataTransfer.getData("sourceId") : e.dataTransfer.getData("sourceId"); 
     if(sourceId !== "pool") { let sourceZone = document.getElementById(sourceId); if(sourceZone) { sourceZone.classList.remove("filled"); sourceZone.dataset.occupiedBy = ""; sourceZone.innerText = sourceZone.dataset.originalText || sourceZone.innerText.split('\n')[1] || sourceZone.innerText; } let oldEl = document.getElementById("d" + nr); if(oldEl) oldEl.remove(); createDragItem(nr, color, "pool"); }
 }
 function handleDrop(zone, nr, color) {
@@ -510,70 +755,35 @@ function checkDragAssignments() {
     if (errors === 0) { score += 4; playerStats.coins += 2; saveStats(); document.getElementById("score-label-drag").innerText = score; document.getElementById("check-drag-btn").style.display = "none"; document.getElementById("next-drag-btn").style.display = "block"; } else { lives--; updateLivesDisplay(); document.getElementById("check-drag-btn").disabled = true; setTimeout(() => { currentDragData.forEach((s, index) => { document.getElementById("zone-" + index).classList.remove("shake-it"); }); if(lives <= 0) finishGame(); else loadDrag(); }, 1200); }
 }
 
-/* --- GAME OVER HANDLING --- */
 function finishGame() {
     if(score > playerStats.scores[currentModeKey]) { playerStats.scores[currentModeKey] = score; saveStats(); }
     document.getElementById("go-score").innerText = score;
     document.getElementById("go-best").innerText = playerStats.scores[currentModeKey];
     
-    // Reset Inputs
-    document.getElementById("player-name").value = playerStats.username || "";
-    document.getElementById("submit-container").style.display = "flex";
-    document.getElementById("submit-message").style.display = "none";
-    document.querySelector(".submit-btn").disabled = false;
-    document.querySelector(".submit-btn").innerText = "SENDEN";
+    // Auto Submit Score if logged in
+    if(playerStats.username && window.submitScoreToDB) {
+        window.submitScoreToDB(playerStats.username, score, currentModeKey, playerStats.activeAvatar);
+    }
 
-    // Continue Logic
     const btnCont = document.getElementById("btn-continue");
     if(playerStats.coins >= continueCost) { btnCont.disabled = false; btnCont.innerHTML = `Weiterspielen (-${continueCost} 🪙)`; btnCont.style.opacity = "1"; } else { btnCont.disabled = true; btnCont.innerHTML = `Zu wenig Coins (${playerStats.coins}/${continueCost})`; btnCont.style.opacity = "0.5"; }
     
     document.getElementById("game-over-screen").classList.add("active");
-    
-    if(window.loadLeaderboard) window.loadLeaderboard(currentModeKey, "leaderboard-content");
-}
-
-function submitScore() {
-    const name = document.getElementById("player-name").value;
-    if(!name) { alert("Bitte Namen eingeben!"); return; }
-    
-    playerStats.username = name; saveStats(); // Name merken
-    
-    if(window.submitScoreToDB) {
-        document.querySelector(".submit-btn").disabled = true;
-        document.querySelector(".submit-btn").innerText = "...";
-        
-        window.submitScoreToDB(name, score, currentModeKey)
-        .then((result) => {
-            document.getElementById("submit-container").style.display = "none";
-            const msg = document.getElementById("submit-message");
-            msg.style.display = "block";
-            
-            // User Feedback
-            if(result === "new") msg.innerText = "Neuer Eintrag erstellt!";
-            else if(result === "updated") msg.innerText = "Highscore verbessert! 🎉";
-            else if(result === "lower") msg.innerText = "Dein alter Highscore war besser.";
-            else msg.innerText = "Gesendet.";
-        })
-        .catch(() => {
-             document.querySelector(".submit-btn").disabled = false;
-             document.querySelector(".submit-btn").innerText = "Retry";
-        });
-    } else {
-        alert("Datenbank noch nicht verbunden!");
-    }
 }
 
 function buyContinue() {
     if(playerStats.coins >= continueCost) {
         playerStats.coins -= continueCost; saveStats();
-        lives = 3; updateLivesDisplay(); updateUIStats();
+        // Check for extra life perk again
+        let maxLives = playerStats.inventory.includes("extra_life") ? 4 : 3;
+        lives = maxLives; 
+        updateLivesDisplay(); updateUIStats();
         document.getElementById("game-over-screen").classList.remove("active");
         if(currentModeKey.includes("quiz")) nextQuizQuestion(); else loadDrag();
     }
 }
 function restartGame() { if(currentModeKey === "quiz_easy") startQuiz(4); else if(currentModeKey === "quiz_hard") startQuiz(6); else startDragDrop(); }
 
-/* --- FLASHCARDS & TABLE --- */
 let cardIdx=0; let flashcardDeck = []; let isRandomFlash = false;
 function startFlashcards(random){ isRandomFlash = random; document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("flashcard-screen").classList.add("active"); if(random) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); else flashcardDeck = [...SDGS]; cardIdx=0; renderCardFront(); }
 function renderCardFront() { let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card"); c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`; c.dataset.side = "front"; document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`; }
