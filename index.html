@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SDG Master - Custom Profile</title>
+    <title>SDG Master - Smart Leaderboard</title>
     <style>
         :root {
             --bg-dark: #2D2D2D;
@@ -13,22 +13,18 @@
             --correct-green: #4C9F38;
             --wrong-red: #E5243B;
             --coin-gold: #FFD700;
-            --shop-btn: #3a86ff;
-            --profile-bg: #333;
-        }
-
-        body.theme-neon {
-            --bg-dark: #050505; --card-bg: #1a1a2e; --accent: #ff00ff;
-            --text-white: #e0e0e0; --correct-green: #00ff9d; --wrong-red: #ff0055;
-            --coin-gold: #00ffff; --shop-btn: #ff00ff; --profile-bg: #16213e;
         }
 
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: var(--bg-dark); color: var(--text-white);
-            margin: 0; display: flex; justify-content: center;
-            touch-action: manipulation; user-select: none;
-            overflow-x: hidden; transition: background 0.5s ease;
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            touch-action: manipulation;
+            user-select: none;
+            overflow-x: hidden;
         }
 
         #app-container {
@@ -39,136 +35,130 @@
         .screen { display: none; flex-direction: column; }
         .active { display: flex; }
 
-        /* HEADER */
-        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .profile-icon-btn {
-            width: 40px; height: 40px; border-radius: 50%; background: var(--card-bg);
-            border: 2px solid var(--accent); display: flex; justify-content: center; align-items: center;
-            cursor: pointer; font-size: 20px; overflow: hidden; /* Für Bilder wichtig */
-        }
-        .profile-icon-btn img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-icon-btn.is-guest { border-color: #666; filter: grayscale(1); }
-
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; }
         .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; margin-right: 10px;}
         .currency-display { color: var(--coin-gold); font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 16px; }
 
-        /* MENU BUTTONS */
+        /* Menu Buttons */
         .menu-btn {
             background-color: var(--card-bg); margin: 10px 0; padding: 15px;
             border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-            transition: transform 0.1s, border 0.3s; border: 1px solid transparent;
+            transition: transform 0.1s;
         }
-        .theme-neon .menu-btn { border: 1px solid var(--accent); box-shadow: 0 0 5px var(--accent); }
         .menu-btn:active { transform: scale(0.98); }
         .btn-left { display: flex; flex-direction: column; }
-        .btn-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+        .btn-sub { font-size: 11px; color: #888; margin-top: 4px; }
         .achievement-star { font-size: 24px; color: #555; transition: color 0.3s; }
-        .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+        .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
 
-        /* PROFILE CARD (CLASSIC STYLE REVERTED) */
-        .profile-card {
-            width: 100%; background: var(--profile-bg); padding: 20px; border-radius: 15px;
-            text-align: center; margin-bottom: 20px; position: relative; border: 1px solid #555;
-            box-sizing: border-box;
-        }
-        .profile-avatar-big {
-            width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 15px;
-            display: flex; justify-content: center; align-items: center; font-size: 50px;
-            border: 4px solid var(--accent); overflow: hidden; position: relative;
-        }
-        .profile-avatar-big img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-name { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
-        .profile-bio { font-size: 14px; color: #aaa; font-style: italic; margin-bottom: 15px; min-height: 20px;}
-        
-        .edit-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: #666; margin-left: 5px; }
-        .edit-btn:hover { color: white; }
-
-        /* AUTH FORMS */
-        .auth-container { max-width: 350px; margin: 0 auto; text-align: center; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; background: #eee; color: black; box-sizing: border-box;}
-        .login-btn { width:100%; padding: 12px; background: var(--correct-green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 10px;}
-        .register-btn { width:100%; padding: 12px; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        /* SHOP */
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .shop-item { background: var(--card-bg); padding: 10px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid #555; }
-        .shop-icon { font-size: 35px; margin-bottom: 5px; }
-        .shop-btn { background: var(--shop-btn); color: white; border: none; padding: 5px 10px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px; }
-        .shop-btn.owned { background: #555; }
-        .shop-btn.active { background: var(--correct-green); cursor: default; }
-        .shop-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* LEADERBOARD */
-        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 350px; overflow-y: auto; }
-        .lb-row { display: flex; justify-content: space-between; padding: 10px 5px; border-bottom: 1px solid #444; color: #bbb; font-size: 14px; cursor: pointer; align-items: center; }
-        .lb-row:hover { background: rgba(255,255,255,0.1); }
-        .lb-user-info { display: flex; align-items: center; gap: 10px; }
-        .lb-avatar { width: 30px; height: 30px; border-radius: 50%; background: #333; display: flex; justify-content: center; align-items: center; font-size: 18px; overflow: hidden; }
-        .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        /* LEADERBOARD TABS */
         .lb-tabs { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 5px; }
-        .tab-btn { flex: 1; background: var(--card-bg); border: 1px solid #555; color: #aaa; padding: 10px 5px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .tab-btn {
+            flex: 1; background: var(--card-bg); border: 1px solid #555; color: #aaa;
+            padding: 10px 5px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
         .tab-btn.active-tab { background: var(--accent); color: black; border-color: var(--accent); }
 
-        /* GAME COMMON */
-        .sdg-display-box { width: 100%; height: 180px; display: flex; justify-content: center; align-items: center; border-radius: 12px; margin-bottom: 30px; font-size: 80px; font-weight: bold; transition: all 0.3s; }
+        /* Quiz UI */
+        .sdg-display-box {
+            width: 100%; height: 180px; display: flex; justify-content: center; align-items: center;
+            border-radius: 12px; margin-bottom: 30px; font-size: 80px; font-weight: bold; transition: all 0.3s;
+        }
         .sdg-display-box img { max-height: 140px; border-radius: 8px; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .option-btn { background-color: var(--card-bg); border: none; color: white; padding: 10px; border-radius: 6px; cursor: pointer; min-height: 90px; font-size: 13px; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .option-btn {
+            background-color: var(--card-bg); border: none; color: white; padding: 10px; border-radius: 6px; 
+            cursor: pointer; min-height: 90px; font-size: 13px; display: flex; align-items: center; 
+            justify-content: center; text-align: center; line-height: 1.2; transition: all 0.2s;
+        }
         .option-btn:disabled { cursor: default; }
+
+        /* Game Over & Input */
+        #game-over-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 100;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box; text-align: center; overflow-y: auto;
+        }
+        #game-over-screen.active { display: flex; }
         
+        .go-title { font-size: 32px; color: var(--wrong-red); margin-bottom: 20px; font-weight: bold; }
+        .go-stats { margin-bottom: 20px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
+        .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 18px; }
+
+        .name-input-container { width: 100%; margin-bottom: 20px; display: flex; gap: 10px; }
+        .name-input { 
+            flex-grow: 1; padding: 10px; border-radius: 5px; border: none; font-size: 16px; 
+            background: #eee; color: #333; font-family: inherit;
+        }
+        .submit-btn {
+            background: var(--correct-green); color: white; border: none; padding: 0 20px; 
+            border-radius: 5px; font-weight: bold; cursor: pointer;
+        }
+        .submit-btn:disabled { background: #555; cursor: not-allowed; }
+
+        /* Leaderboard Table */
+        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; max-height: 350px; overflow-y: auto; }
+        .lb-header { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #555; padding-bottom: 5px;}
+        .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; color: #bbb; font-size: 14px; }
+        .lb-row:nth-child(1) { color: #FFD700; } 
+        .lb-row:nth-child(2) { color: #C0C0C0; } 
+        .lb-row:nth-child(3) { color: #CD7F32; } 
+
+        .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        .btn-continue { background: var(--accent); color: black; }
+        .btn-restart { background: var(--card-bg); color: white; border: 1px solid #666; }
+        .btn-menu { background: transparent; color: #aaa; }
+
         /* Drag & Drop */
         .drop-zone-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .drop-zone { background: var(--card-bg); min-height: 130px; border: 2px dashed #666; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; font-size: 12px; }
+        .drop-zone { 
+            background: var(--card-bg); min-height: 130px; border: 2px dashed #666; 
+            border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; text-align: center; padding: 10px; font-size: 12px; position: relative;
+        }
         .drop-zone.filled { border-style: solid; border-color: transparent; }
-        .drag-items { display: flex; justify-content: space-around; padding: 15px; background: #333; border-radius: 8px; min-height: 70px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .drag-box { width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0; z-index: 10; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
         .shake-it { animation: shake 0.4s; border-color: var(--wrong-red) !important; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
-        /* Game Over */
-        #game-over-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; }
-        #game-over-screen.active { display: flex; }
-        .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        .drag-items { display: flex; justify-content: space-around; padding: 15px; background: #333; border-radius: 8px; min-height: 70px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .drag-box { 
+            width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; 
+            font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0; z-index: 10;
+        }
+        .drop-zone .drag-box { pointer-events: auto; cursor: grab; }
+        .action-btn { background-color: var(--accent); color: black; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
         .correct { background-color: var(--correct-green) !important; color: white !important; }
         .wrong { background-color: var(--wrong-red) !important; color: white !important; }
-        .action-btn { background-color: var(--accent); color: black; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
         
-        .flashcard { width: 100%; max-width: 300px; height: 400px; margin: 20px auto; background: white; color: black; border-radius: 15px; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; padding: 10px; }
+        /* Flashcards / List */
+        .flashcard { width: 100%; max-width: 300px; height: 400px; margin: 20px auto; background: white; color: black; border-radius: 15px; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         .flashcard img { border-radius: 10px; width: 280px; height: auto; }
         .list-row { display: flex; background: var(--card-bg); margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden; }
         .row-nr { width: 45px; height: 60px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
-        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; object-fit: contain; }
+        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; object-fit: contain; }
         .row-text { font-size: 13px; padding-right: 10px; flex-grow: 1; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
-    
     <div id="menu-screen" class="screen active">
-        <div class="header-area">
-            <h2 style="margin:0; color:var(--accent);">SDG MASTER</h2>
-            <div id="profile-btn" class="profile-icon-btn is-guest" onclick="openProfileFlow()">👤</div>
-        </div>
-
+        <h1 style="text-align:center; color:var(--accent);">SDG MASTER</h1>
         <div style="text-align:center; margin-bottom:20px;">
             <span class="currency-display" style="justify-content:center; font-size:20px;">
                 🪙 <span id="menu-coins">0</span>
             </span>
-            <div style="font-size:12px; color:#888; margin-top:5px;" id="welcome-msg">Gast-Modus</div>
+            <div style="font-size:12px; color:#888; margin-top:5px;">Sammle Sterne & miss dich global!</div>
         </div>
         
-        <div style="display:flex; gap:10px;">
-            <div class="menu-btn" onclick="openGlobalLeaderboard()" style="flex:1;">
-                <div class="btn-left"><span>🏆 Rangliste</span></div>
-            </div>
-            <div class="menu-btn" onclick="openShop()" style="flex:1; background: #333;">
-                <div class="btn-left"><span style="color:var(--coin-gold)">🛒 Shop</span></div>
-            </div>
+        <div class="menu-btn" onclick="openGlobalLeaderboard()">
+            <div class="btn-left"><span>🏆 Globales Leaderboard</span></div>
+            <span style="font-size:24px;">»</span>
         </div>
 
-        <div style="border-top:1px solid #555; margin:15px 0;"></div>
+        <div style="border-top:1px solid #555; margin:10px 0;"></div>
         
         <div class="menu-btn" onclick="startQuiz(4)">
             <div class="btn-left"><span>Quiz (Normal)</span><span class="btn-sub">Ziel: 30 Pkt.</span></div>
@@ -182,122 +172,103 @@
             <div class="btn-left"><span>Ziehen & Ablegen</span><span class="btn-sub">Ziel: 50 Pkt.</span></div>
             <span id="star-drag" class="achievement-star">☆</span>
         </div>
+        <div style="border-top:1px solid #555; margin:10px 0;"></div>
         <div class="menu-btn" onclick="startFlashcards(false)">Karteikarten (1-17)</div>
+        <div class="menu-btn" onclick="startFlashcards(true)">Karteikarten (Zufall)</div>
+        <div class="menu-btn" onclick="showTable()">Tabelle lernen</div>
     </div>
 
-    <div id="auth-choice-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Konto</span></div>
-        <div class="auth-container" style="margin-top:50px;">
-            <h2 style="color:var(--accent);">Willkommen!</h2>
-            <p style="color:#aaa; margin-bottom:30px;">Melde dich an, um deine Statistiken, Avatare und deinen Rang zu speichern.</p>
-            <button class="login-btn" onclick="showLoginScreen()">Anmelden</button>
-            <button class="register-btn" onclick="showRegisterScreen()">Registrieren</button>
-        </div>
-    </div>
-
-    <div id="login-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="openProfileFlow()">←</button><span>Anmelden</span></div>
-        <div class="auth-container">
-            <input type="text" id="login-name" class="auth-input" placeholder="Benutzername">
-            <input type="password" id="login-pass" class="auth-input" placeholder="Passwort">
-            <button class="login-btn" onclick="performLogin()">Einloggen</button>
-            <div id="login-msg" style="color:var(--wrong-red); font-size:13px;"></div>
-        </div>
-    </div>
-
-    <div id="register-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="openProfileFlow()">←</button><span>Neues Konto</span></div>
-        <div class="auth-container">
-            <input type="text" id="reg-name" class="auth-input" placeholder="Benutzername" maxlength="12">
-            <input type="password" id="reg-pass" class="auth-input" placeholder="Passwort">
-            <button class="register-btn" onclick="performRegister()">Konto erstellen</button>
-            <div id="reg-msg" style="color:var(--wrong-red); font-size:13px;"></div>
-        </div>
-    </div>
-
-    <div id="profile-view-screen" class="screen">
-        <div class="top-bar">
-            <button class="back-btn" onclick="showMenu()">←</button><span>Dein Profil</span>
-            <button onclick="doLogout()" style="background:none; border:none; color:#aaa; cursor:pointer;">Logout</button>
-        </div>
-
-        <div class="profile-card">
-            <div id="p-avatar" class="profile-avatar-big">👤</div>
-            
-            <div id="upload-container" style="display:none; margin-bottom:15px;">
-                <input type="file" id="file-upload" accept="image/*" style="display:none;" onchange="handleFileUpload(this)">
-                <button onclick="document.getElementById('file-upload').click()" style="background:var(--accent); border:none; padding:5px 10px; border-radius:5px; font-size:12px; cursor:pointer; color:black; font-weight:bold;">📸 Bild ändern</button>
-            </div>
-
-            <div id="p-name" class="profile-name">Spieler</div>
-            
-            <div style="display:flex; justify-content:center; align-items:center; gap:5px;">
-                <span id="p-bio" class="profile-bio">SDG Enthusiast</span>
-                <button class="edit-btn" onclick="editBio()">✏️</button>
-            </div>
-            
-            <div style="border-top:1px solid #555; margin:15px 0;"></div>
-            
-            <div style="display:flex; justify-content:space-around;">
-                <div>🪙 <span id="p-coins">0</span></div>
-                <div>🏆 Easy: <span id="p-score-e">0</span></div>
-                <div>🏆 Hard: <span id="p-score-h">0</span></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="public-profile-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="openGlobalLeaderboard()">←</button><span>Spielerprofil</span></div>
-        <div class="profile-card" style="border-color: var(--accent);">
-            <div id="pub-avatar" class="profile-avatar-big">👤</div>
-            <div id="pub-name" class="profile-name">...</div>
-            <div id="pub-bio" class="profile-bio">...</div>
-            <div style="border-top:1px solid #555; margin:15px 0;"></div>
-            <div style="display:flex; justify-content:space-around;">
-                <div>🏆 Normal: <span id="pub-score-e">0</span></div>
-                <div>🏆 Schwer: <span id="pub-score-h">0</span></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="shop-screen" class="screen">
-        <div class="top-bar">
-            <button class="back-btn" onclick="showMenu()">←</button>
-            <span class="currency-display">🪙 <span id="shop-coins">0</span></span>
-        </div>
-        <div class="lb-tabs">
-            <button class="tab-btn active-tab" onclick="filterShop('all', this)">Alles</button>
-            <button class="tab-btn" onclick="filterShop('avatar', this)">Avatare</button>
-            <button class="tab-btn" onclick="filterShop('feature', this)">Extras</button>
-        </div>
-        <div id="shop-container" class="shop-grid"></div>
-    </div>
-
-    <div id="quiz-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="lives-label-quiz"></span><span id="score-label"></span></div><div id="quiz-display" class="sdg-display-box"></div><div id="quiz-options" class="options-grid"></div></div>
-    <div id="drag-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="lives-label-drag"></span><span id="score-label-drag"></span></div><div id="drop-zones" class="drop-zone-container"></div><div id="drag-pool" class="drag-items"></div><button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button><button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button></div>
-    <div id="flashcard-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="card-progress"></span></div><div id="main-card" class="flashcard" onclick="flipCard()"></div><div style="display:flex; justify-content: space-around; margin-top: 20px;"><button class="option-btn" onclick="prevCard()">←</button><button class="option-btn" onclick="nextCard()">→</button></div></div>
-    <div id="table-screen" class="screen"><div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button></div><div id="table-content"></div></div>
-    
     <div id="leaderboard-screen" class="screen">
         <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Ranglisten</span></div>
-        <div class="lb-tabs"><button class="tab-btn active-tab" onclick="switchLBTab('quiz_easy', this)">Normal</button><button class="tab-btn" onclick="switchLBTab('quiz_hard', this)">Schwer</button><button class="tab-btn" onclick="switchLBTab('drag', this)">Skill</button></div>
-        <div class="leaderboard"><div id="global-lb-content" style="padding:10px; color:#888;">Lade...</div></div>
+        
+        <div class="lb-tabs">
+            <button class="tab-btn active-tab" onclick="switchLBTab('quiz_easy', this)">Normal</button>
+            <button class="tab-btn" onclick="switchLBTab('quiz_hard', this)">Schwer</button>
+            <button class="tab-btn" onclick="switchLBTab('drag', this)">Drag & Drop</button>
+        </div>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <span>Platzierung</span>
+                <span>Punkte</span>
+            </div>
+            <div id="global-lb-content" style="text-align:center; padding:10px; color:#666;">
+                Lade Daten...
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">←</button>
+            <span id="lives-label-quiz" style="font-size:20px; letter-spacing:2px;">❤️❤️❤️</span>
+            <span class="currency-display">🪙 <span id="ingame-coins-quiz">0</span></span>
+            <span id="score-label" style="font-weight:bold;">0</span>
+        </div>
+        <div id="quiz-display" class="sdg-display-box"></div>
+        <div id="quiz-options" class="options-grid"></div>
+    </div>
+
+    <div id="drag-screen" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">←</button>
+            <span id="lives-label-drag" style="font-size:20px; letter-spacing:2px;">❤️❤️❤️</span>
+            <span class="currency-display">🪙 <span id="ingame-coins-drag">0</span></span>
+            <span id="score-label-drag" style="font-weight:bold;">0</span>
+        </div>
+        <div id="drop-zones" class="drop-zone-container"></div>
+        <div id="drag-pool" class="drag-items"></div>
+        <button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button>
+        <button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button>
+    </div>
+
+    <div id="flashcard-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span id="card-progress"></span></div>
+        <div id="main-card" class="flashcard" onclick="flipCard()"></div>
+        <div style="display:flex; justify-content: space-around; margin-top: 20px;">
+            <button class="option-btn" onclick="prevCard()" style="min-height: auto; width: 45%;">←</button>
+            <button class="option-btn" onclick="nextCard()" style="min-height: auto; width: 45%;">→</button>
+        </div>
+    </div>
+    <div id="table-screen" class="screen">
+        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button></div>
+        <div id="table-content"></div>
     </div>
 
     <div id="game-over-screen">
-        <div class="go-title">RUNDE VORBEI</div>
-        <div class="go-stats"><div class="stat-row"><span>Ergebnis:</span> <span id="go-score" style="color:white">0</span></div></div>
-        <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiter (-10 🪙)</button>
+        <div class="go-title">GAME OVER</div>
+        <div class="go-stats">
+            <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
+            <div class="stat-row"><span>Persönl. Rekord:</span> <span id="go-best" style="color:var(--accent)">0</span></div>
+        </div>
+
+        <div class="name-input-container" id="submit-container">
+            <input type="text" id="player-name" class="name-input" placeholder="Dein Name" maxlength="12">
+            <button class="submit-btn" onclick="submitScore()">SENDEN</button>
+        </div>
+        <div id="submit-message" style="color:#aaa; margin-bottom:10px; font-size:13px; display:none;">Score gesendet!</div>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <span>Globales Leaderboard</span>
+                <span>Punkte</span>
+            </div>
+            <div id="leaderboard-content" style="text-align:center; padding:10px; color:#666;">
+                Lade Daten...
+            </div>
+        </div>
+
+        <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
         <button class="go-btn btn-restart" onclick="restartGame()">Neuer Versuch</button>
-        <button class="go-btn btn-restart" style="background:transparent; border:1px solid #555;" onclick="showMenu()">Menü</button>
+        <button class="go-btn btn-menu" onclick="showMenu()">Zum Hauptmenü</button>
     </div>
 </div>
 
 <script type="module">
+    // !!! WICHTIG: updateDoc WIRD HIER IMPORTIERT !!!
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, setDoc, getDoc, doc, updateDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // --- HIER WIEDER DEINE FIREBASE CONFIG EINFÜGEN ---
     const firebaseConfig = {
         apiKey: "AIzaSyCxA2tDZMu57sko9UN_uMc8OHNBErAAwVs",
         authDomain: "sdg-quiz-50315.firebaseapp.com",
@@ -313,368 +284,273 @@
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         console.log("Firebase verbunden!");
-    } catch(e) { console.error(e); }
+    } catch(e) {
+        console.error("Firebase Fehler:", e);
+    }
 
-    // LOGIN
-    window.performLogin = async function() {
-        const name = document.getElementById("login-name").value.trim();
-        const pass = document.getElementById("login-pass").value.trim();
-        const msg = document.getElementById("login-msg");
-        if(!db) { msg.innerText = "Datenbank offline."; return; }
-        msg.innerText = "Prüfe...";
-        try {
-            const docRef = doc(db, "users", name);
-            const docSnap = await getDoc(docRef);
-            if(docSnap.exists() && docSnap.data().password === pass) {
-                window.importCloudData(docSnap.data());
-            } else { msg.innerText = "Name oder Passwort falsch."; }
-        } catch(e) { msg.innerText = "Fehler: " + e.message; }
-    };
-
-    // REGISTER
-    window.performRegister = async function() {
-        const name = document.getElementById("reg-name").value.trim();
-        const pass = document.getElementById("reg-pass").value.trim();
-        const msg = document.getElementById("reg-msg");
-        if(!name || !pass) { msg.innerText = "Bitte alles ausfüllen."; return; }
-        if(name.length > 12) { msg.innerText = "Name zu lang."; return; }
+    // UPDATE: SMART SUBMIT LOGIC (PRÜFEN VOR SPEICHERN)
+    window.submitScoreToDB = async function(name, score, mode) {
         if(!db) return;
-        msg.innerText = "Erstelle...";
         try {
-            const docRef = doc(db, "users", name);
-            const docSnap = await getDoc(docRef);
-            if(docSnap.exists()) { msg.innerText = "Name schon vergeben."; } 
-            else {
-                let startData = window.getPlayerStats();
-                startData.username = name; startData.password = pass;
-                startData.joined = new Date().toISOString();
-                startData.bio = "SDG Enthusiast"; // Default Bio
-                await setDoc(docRef, startData);
-                window.importCloudData(startData);
+            // 1. Prüfen ob Eintrag existiert
+            const q = query(
+                collection(db, "leaderboard"), 
+                where("name", "==", name), 
+                where("mode", "==", mode)
+            );
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                // FALL 1: Spieler existiert noch nicht -> Neu anlegen
+                await addDoc(collection(db, "leaderboard"), {
+                    name: name,
+                    score: score,
+                    mode: mode,
+                    timestamp: new Date()
+                });
+                return "new"; // Success
+            } else {
+                // FALL 2: Spieler existiert -> Score vergleichen
+                const existingDoc = snapshot.docs[0];
+                const oldScore = existingDoc.data().score;
+
+                if (score > oldScore) {
+                    // Neuer Score ist besser -> Update
+                    await updateDoc(existingDoc.ref, {
+                        score: score,
+                        timestamp: new Date()
+                    });
+                    return "updated"; // Success
+                } else {
+                    // Alter Score war besser -> Nichts tun
+                    return "lower"; // Kein Update nötig
+                }
             }
-        } catch(e) { msg.innerText = "Fehler: " + e.message; }
+        } catch (e) {
+            console.error("Fehler beim Senden: ", e);
+            throw e; // Fehler weiterwerfen für UI Handling
+        } finally {
+             // Egal was passiert ist, Liste neu laden
+             window.loadLeaderboard(mode, "leaderboard-content"); 
+        }
     };
 
-    // SYNC
-    window.syncToCloud = async function() {
-        const stats = window.getPlayerStats();
-        if(stats.username && db) {
-            await updateDoc(doc(db, "users", stats.username), {
-                coins: stats.coins,
-                scores: stats.scores,
-                inventory: stats.inventory,
-                activeAvatar: stats.activeAvatar,
-                bio: stats.bio // Bio mit synchronisieren
-            });
-        }
-    }
-
-    // LOAD PROFILE (PUBLIC)
-    window.fetchUserProfile = async function(username) {
-        if(!db) return null;
-        const d = await getDoc(doc(db, "users", username));
-        return d.exists() ? d.data() : null;
-    }
-
-    // LEADERBOARD MIT CLICK
-    window.loadLeaderboard = async function(mode, containerId) {
-        const div = document.getElementById(containerId);
-        if(!db || !div) return;
-        div.innerHTML = "Lade...";
-        const q = query(collection(db, "leaderboard"), where("mode", "==", mode), orderBy("score", "desc"), limit(20));
-        const snap = await getDocs(q);
-        let h = "";
-        snap.forEach((d, i) => {
-            const data = d.data();
-            // Check ob Avatar ein Bild ist (Base64) oder Emoji
-            let avContent = data.avatar || "👤";
-            if(avContent.startsWith("data:image")) avContent = `<img src="${avContent}">`;
+    window.loadLeaderboard = async function(mode, containerId = "leaderboard-content") {
+        const lbContent = document.getElementById(containerId);
+        if(!lbContent) return;
+        if(!db) { lbContent.innerHTML = "Keine Datenbank-Verbindung."; return; }
+        
+        lbContent.innerHTML = "Lade...";
+        
+        try {
+            const q = query(collection(db, "leaderboard"), where("mode", "==", mode), orderBy("score", "desc"), limit(20));
+            const querySnapshot = await getDocs(q);
             
-            h += `<div class="lb-row" onclick="viewPublicProfile('${data.name}')">
-                <div class="lb-user-info"><div class="lb-avatar">${avContent}</div><span>${data.name}</span></div>
-                <span>${data.score}</span>
-            </div>`;
-        });
-        div.innerHTML = h || "Keine Einträge.";
-    };
+            let html = "";
+            let data = [];
+            
+            querySnapshot.forEach((doc) => { data.push(doc.data()); });
+            
+            data.forEach((entry, index) => {
+                let rank = index + 1;
+                html += `<div class="lb-row"><span>#${rank} ${entry.name}</span><span>${entry.score}</span></div>`;
+            });
 
-    // SUBMIT SCORE (INKL. AVATAR & BIO UPDATE IM LEADERBOARD)
-    window.submitScoreToDB = async function(name, score, mode, avatar) {
-        if(!db) return;
-        const q = query(collection(db, "leaderboard"), where("name", "==", name), where("mode", "==", mode));
-        const snap = await getDocs(q);
-        if(snap.empty) {
-            await addDoc(collection(db, "leaderboard"), { name, score, mode, avatar, timestamp: new Date() });
-        } else {
-            const d = snap.docs[0];
-            // Update Avatar immer, Score nur wenn besser
-            let updateData = { avatar: avatar };
-            if(score > d.data().score) updateData.score = score;
-            await updateDoc(d.ref, updateData);
+            if(data.length === 0) html = "<div style='padding:10px'>Noch keine Einträge.</div>";
+            lbContent.innerHTML = html;
+
+        } catch(e) {
+            console.error("Ladefehler:", e);
+            lbContent.innerHTML = "Ladefehler (Index fehlt?).";
         }
-        window.syncToCloud();
     };
 </script>
 
 <script>
-/* --- ITEMS & DATA --- */
+/* --- GAME LOGIC --- */
 const SDGS = [
     {nr: 1, farbe: "#E5243B", titel: "Keine Armut"}, {nr: 2, farbe: "#DDA63A", titel: "Kein Hunger"}, {nr: 3, farbe: "#4C9F38", titel: "Gesundheit und Wohlergehen"}, {nr: 4, farbe: "#C5192D", titel: "Hochwertige Bildung"}, {nr: 5, farbe: "#FF3A21", titel: "Geschlechtergleichstellung"}, {nr: 6, farbe: "#26BDE2", titel: "Sauberes Wasser und Sanitäreinrichtungen"}, {nr: 7, farbe: "#FCC30B", titel: "Bezahlbare und saubere Energie"}, {nr: 8, farbe: "#A21942", titel: "Menschenwürdige Arbeit und Wirtschaftswachstum"}, {nr: 9, farbe: "#FD6925", titel: "Industrie, Innovation und Infrastruktur"}, {nr: 10, farbe: "#DD1367", titel: "Weniger Ungleichheiten"}, {nr: 11, farbe: "#FD9D24", titel: "Nachhaltige Städte und Gemeinden"}, {nr: 12, farbe: "#BF8B2E", titel: "Nachhaltige/r Konsum und Produktion"}, {nr: 13, farbe: "#3F7E44", titel: "Maßnahmen zum Klimaschutz"}, {nr: 14, farbe: "#0A97D9", titel: "Leben unter Wasser"}, {nr: 15, farbe: "#56C02B", titel: "Leben an Land"}, {nr: 16, farbe: "#00689D", titel: "Frieden, Gerechtigkeit und starke Institutionen"}, {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
 ];
+const TARGETS = { easy: 30, hard: 15, drag: 50 };
+let continueCost = 10;
+let playerStats = { coins: 0, scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 } };
 
-const SHOP_ITEMS = [
-    { id: "extra_life", name: "Extra Herz", type: "feature", desc: "4 Leben im Spiel", cost: 50, icon: "❤️" },
-    { id: "custom_upload", name: "Eigener Upload", type: "feature", desc: "Profilbild hochladen", cost: 200, icon: "📸" },
-    { id: "theme_neon", name: "Neon Style", type: "feature", desc: "Cyberpunk Look", cost: 100, icon: "💎" },
-    { id: "av_alien", name: "Alien", type: "avatar", desc: "Avatar", cost: 20, icon: "👽" },
-    { id: "av_robot", name: "Robot", type: "avatar", desc: "Avatar", cost: 20, icon: "🤖" },
-    { id: "av_fox", name: "Fox", type: "avatar", desc: "Avatar", cost: 30, icon: "🦊" }
-];
-
-let playerStats = { 
-    username: null, coins: 0, scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 },
-    inventory: [], activeTheme: "theme_default", activeAvatar: "👤", bio: "SDG Enthusiast"
-};
-
-// LOAD LOCAL
 if(localStorage.getItem("sdgAppData")) {
-    let d = JSON.parse(localStorage.getItem("sdgAppData"));
-    if(!d.bio) d.bio = "SDG Enthusiast";
-    playerStats = d;
-}
-updateUIStats();
-
-window.getPlayerStats = () => playerStats;
-window.importCloudData = (data) => {
+    let data = JSON.parse(localStorage.getItem("sdgAppData"));
+    if(!data.scores) data.scores = { quiz_easy: data.highScore || 0, quiz_hard: 0, drag: 0 };
     playerStats = data;
-    if(!playerStats.bio) playerStats.bio = "SDG Enthusiast";
-    localStorage.setItem("sdgAppData", JSON.stringify(playerStats));
-    updateUIStats(); showProfileView();
 }
-
-// UI HELPERS
-function showMenu(){ switchScreen("menu-screen"); }
-function openProfileFlow() { if(playerStats.username) showProfileView(); else switchScreen("auth-choice-screen"); }
-function showLoginScreen() { switchScreen("login-screen"); }
-function showRegisterScreen() { switchScreen("register-screen"); }
-function showProfileView() {
-    switchScreen("profile-view-screen");
-    document.getElementById("p-name").innerText = playerStats.username;
-    document.getElementById("p-bio").innerText = playerStats.bio;
-    document.getElementById("p-coins").innerText = playerStats.coins;
-    document.getElementById("p-score-e").innerText = playerStats.scores.quiz_easy;
-    document.getElementById("p-score-h").innerText = playerStats.scores.quiz_hard;
-    
-    // Avatar rendern
-    renderAvatar("p-avatar", playerStats.activeAvatar);
-    
-    // Upload Button zeigen wenn gekauft
-    const hasUpload = playerStats.inventory.includes("custom_upload");
-    document.getElementById("upload-container").style.display = hasUpload ? "block" : "none";
-}
-
-function renderAvatar(id, content) {
-    const el = document.getElementById(id);
-    if(content.startsWith("data:image")) el.innerHTML = `<img src="${content}">`;
-    else el.innerText = content;
-}
-
+function saveStats() { localStorage.setItem("sdgAppData", JSON.stringify(playerStats)); updateUIStats(); }
 function updateUIStats() {
     document.getElementById("menu-coins").innerText = playerStats.coins;
-    document.getElementById("shop-coins").innerText = playerStats.coins;
-    if(playerStats.username) {
-        document.getElementById("profile-btn").classList.remove("is-guest");
-        renderAvatar("profile-btn", playerStats.activeAvatar); // Kleines Icon update
-        document.getElementById("welcome-msg").innerText = `Hallo, ${playerStats.username}`;
-    } else {
-        document.getElementById("profile-btn").classList.add("is-guest");
-        document.getElementById("profile-btn").innerText = "👤";
-        document.getElementById("welcome-msg").innerText = "Gast-Modus";
-    }
-    applyTheme(playerStats.activeTheme);
+    document.getElementById("ingame-coins-quiz").innerText = playerStats.coins;
+    document.getElementById("ingame-coins-drag").innerText = playerStats.coins;
+    updateStar("star-quiz-easy", playerStats.scores.quiz_easy, TARGETS.easy);
+    updateStar("star-quiz-hard", playerStats.scores.quiz_hard, TARGETS.hard);
+    updateStar("star-drag", playerStats.scores.drag, TARGETS.drag);
 }
-
-// BIO EDITING
-function editBio() {
-    let newBio = prompt("Neue Bio eingeben:", playerStats.bio);
-    if(newBio && newBio.length > 0) {
-        playerStats.bio = newBio.substring(0, 30); // Max length
-        localStorage.setItem("sdgAppData", JSON.stringify(playerStats));
-        if(window.syncToCloud) window.syncToCloud();
-        showProfileView(); // Refresh
-    }
+function updateStar(id, score, target) {
+    const el = document.getElementById(id);
+    if(score >= target) { el.innerText = "★"; el.classList.add("unlocked"); } else { el.innerText = "☆"; el.classList.remove("unlocked"); }
 }
-
-// IMAGE UPLOAD (Base64 Encoding)
-function handleFileUpload(input) {
-    const file = input.files[0];
-    if(!file) return;
-    if(file.size > 50000) { alert("Bild zu groß! Max 50KB."); return; } // Limit for Firestore
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64 = e.target.result;
-        // Speichern
-        playerStats.activeAvatar = base64;
-        localStorage.setItem("sdgAppData", JSON.stringify(playerStats));
-        if(window.syncToCloud) window.syncToCloud();
-        showProfileView(); // Zeigt neues Bild an
-    };
-    reader.readAsDataURL(file);
-}
-
-// PUBLIC PROFILE VIEW
-async function viewPublicProfile(name) {
-    if(name === playerStats.username) { openProfileFlow(); return; }
-    
-    switchScreen("public-profile-screen");
-    document.getElementById("pub-name").innerText = "Lade...";
-    document.getElementById("pub-avatar").innerText = "⏳";
-    
-    if(window.fetchUserProfile) {
-        const u = await window.fetchUserProfile(name);
-        if(u) {
-            document.getElementById("pub-name").innerText = u.username;
-            document.getElementById("pub-bio").innerText = u.bio || "SDG Enthusiast";
-            renderAvatar("pub-avatar", u.activeAvatar || "👤");
-            document.getElementById("pub-score-e").innerText = u.scores.quiz_easy;
-            document.getElementById("pub-score-h").innerText = u.scores.quiz_hard;
-        } else { document.getElementById("pub-name").innerText = "Nicht gefunden"; }
-    }
-}
-
-// SHOP LOGIC
-function openShop() { switchScreen("shop-screen"); renderShop("all"); }
-function filterShop(type, btn) { document.querySelectorAll('.shop-screen .tab-btn').forEach(b=>b.classList.remove('active-tab')); btn.classList.add('active-tab'); renderShop(type); }
-function renderShop(filter) {
-    const con = document.getElementById("shop-container"); con.innerHTML = "";
-    SHOP_ITEMS.forEach(item => {
-        if(filter !== "all" && item.type !== filter) return;
-        const owned = playerStats.inventory.includes(item.id);
-        let btnTxt = item.cost + " 🪙"; let action = `buyItem('${item.id}', ${item.cost})`; let cls = "shop-btn";
-        
-        // Status Check
-        if(owned) {
-            if(item.type === "feature") { btnTxt = "Gekauft"; cls += " active"; action=""; } // Features immer aktiv
-            else if(item.type === "theme" && playerStats.activeTheme === item.id) { btnTxt = "Aktiv"; cls += " active"; action=""; }
-            else if(item.type === "avatar" && playerStats.activeAvatar === item.icon) { btnTxt = "Aktiv"; cls += " active"; action=""; }
-            else { btnTxt = "Ausrüsten"; cls += " owned"; action = `equipItem('${item.id}')`; }
-        } else if(playerStats.coins < item.cost) { action=""; cls += ":disabled"; }
-
-        con.innerHTML += `<div class="shop-item"><div class="shop-icon">${item.icon}</div><h3>${item.name}</h3><button class="${cls}" onclick="${action}">${btnTxt}</button></div>`;
-    });
-}
-function buyItem(id, cost) {
-    if(playerStats.coins >= cost) {
-        playerStats.coins -= cost; playerStats.inventory.push(id);
-        saveStats(); if(window.syncToCloud) window.syncToCloud(); renderShop("all");
-    }
-}
-function equipItem(id) {
-    const item = SHOP_ITEMS.find(i=>i.id===id);
-    if(item.type === "theme") playerStats.activeTheme = id;
-    if(item.type === "avatar") playerStats.activeAvatar = item.icon;
-    saveStats(); if(window.syncToCloud) window.syncToCloud(); renderShop("all");
-}
-function applyTheme(id) { document.body.className = (id === "theme_neon") ? "theme-neon" : ""; }
-
-/* GAME LOGIC & UTILS (Keep same as before) */
-function switchScreen(id) { document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
-function doLogout() { playerStats = { username: null, coins: 0, scores: {quiz_easy:0,quiz_hard:0,drag:0}, inventory:[], activeAvatar:"👤" }; localStorage.removeItem("sdgAppData"); updateUIStats(); showMenu(); }
-function openGlobalLeaderboard() { switchScreen("leaderboard-screen"); switchLBTab('quiz_easy', document.querySelector('.tab-btn')); }
-function switchLBTab(m, b) { document.querySelectorAll('.leaderboard .tab-btn').forEach(btn=>btn.classList.remove('active-tab')); b.classList.add('active-tab'); if(window.loadLeaderboard) window.loadLeaderboard(m, "global-lb-content"); }
-
+updateUIStats();
 let masterDeck = []; function resetDeck() { masterDeck = [...SDGS].sort(() => Math.random() - 0.5); } function drawCard() { if(masterDeck.length === 0) resetDeck(); return masterDeck.pop(); }
 let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy"; 
 function getImgUrl(nr) { const padded = nr.toString().padStart(2, "0"); return `https://commons.wikimedia.org/wiki/Special:Redirect/file/SDG-icon-DE-${padded}.svg`; }
-function updateLivesDisplay() { 
-    let hearts = ""; let maxLives = playerStats.inventory.includes("extra_life") ? 4 : 3;
-    for(let i=0; i<lives; i++) hearts += "❤️"; for(let i=lives; i<maxLives; i++) hearts += "🖤"; 
-    document.getElementById("lives-label-quiz").innerText = hearts; document.getElementById("lives-label-drag").innerText = hearts; 
+function showMenu(){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("menu-screen").classList.add("active"); updateUIStats(); }
+function updateLivesDisplay() { let hearts = ""; for(let i=0; i<lives; i++) hearts += "❤️"; for(let i=lives; i<3; i++) hearts += "🖤"; document.getElementById("lives-label-quiz").innerText = hearts; document.getElementById("lives-label-drag").innerText = hearts; }
+
+// --- GLOBAL LEADERBOARD FUNCTIONS ---
+function openGlobalLeaderboard() {
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("leaderboard-screen").classList.add("active");
+    switchLBTab('quiz_easy', document.querySelector('.tab-btn')); 
+}
+
+function switchLBTab(mode, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+    btn.classList.add('active-tab');
+    if(window.loadLeaderboard) window.loadLeaderboard(mode, "global-lb-content");
 }
 
 function startQuiz(n){
-    quizModeN = n; currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; score = 0; 
-    lives = playerStats.inventory.includes("extra_life") ? 4 : 3;
-    resetDeck(); switchScreen("quiz-screen");
-    document.getElementById("score-label").innerText = score; updateLivesDisplay(); nextQuizQuestion();
+    quizModeN = n; currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; score = 0; lives = 3; resetDeck();
+    document.getElementById("score-label").innerText = score; updateLivesDisplay();
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("quiz-screen").classList.add("active");
+    nextQuizQuestion();
 }
 function nextQuizQuestion(){
-    currentSdg = drawCard(); const display = document.getElementById("quiz-display"); 
-    display.innerHTML = `<span style="color:white">${currentSdg.nr}</span>`; display.style.background = currentSdg.farbe;
+    currentSdg = drawCard(); const display = document.getElementById("quiz-display"); const grid = document.getElementById("quiz-options");
+    let mode = 0; if (quizModeN > 4) mode = Math.floor(Math.random() * 3) + 1; 
+    display.style.background = "var(--card-bg)"; display.style.color = "white"; display.style.fontSize = "80px"; display.innerHTML = "";
+    if (mode === 0) { display.style.background = currentSdg.farbe; display.innerHTML = `<span>${currentSdg.nr}</span>`; } 
+    else if (mode === 1) { display.style.background = currentSdg.farbe; display.innerHTML = `<span>?</span>`; } 
+    else if (mode === 2) { display.style.background = "#555"; display.innerHTML = `<span>${currentSdg.nr}</span>`; } 
+    else if (mode === 3) { display.style.background = "#222"; display.style.fontSize = "24px"; display.style.padding = "20px"; display.style.textAlign = "center"; display.innerText = currentSdg.titel; }
     let opts = [currentSdg]; while(opts.length < quizModeN){ let r = SDGS[Math.floor(Math.random()*17)]; if(!opts.find(o => o.nr === r.nr)) opts.push(r); }
-    const grid = document.getElementById("quiz-options"); grid.innerHTML = "";
-    opts.sort(()=>Math.random()-0.5).forEach(o=>{
-        let b = document.createElement("button"); b.className="option-btn"; b.innerText = o.titel;
+    grid.innerHTML = ""; opts.sort(()=>Math.random()-0.5).forEach(o=>{
+        let b = document.createElement("button"); b.className="option-btn"; b.dataset.nr = o.nr;
+        if (mode === 3) { b.innerText = o.nr; b.style.backgroundColor = o.farbe; b.style.fontSize = "40px"; b.style.fontWeight = "bold"; } else { b.innerText = o.titel; b.style.backgroundColor = "var(--card-bg)"; b.style.fontSize = "13px"; }
         b.onclick = () => {
-            if(o.nr === currentSdg.nr) { score++; b.classList.add("correct"); setTimeout(nextQuizQuestion, 1000); } 
-            else { lives--; b.classList.add("wrong"); updateLivesDisplay(); if(lives<=0) finishGame(); }
-            document.getElementById("score-label").innerText = score;
+            const isCorrect = o.nr === currentSdg.nr; const allButtons = grid.querySelectorAll("button");
+            if (isCorrect) { allButtons.forEach(btn => btn.disabled = true); if (mode === 3) { b.style.border = "4px solid white"; b.style.opacity = "1"; } else { b.classList.add("correct"); } score++; playerStats.coins += 1; saveStats(); document.getElementById("score-label").innerText = score; setTimeout(nextQuizQuestion, 1500); } 
+            else { lives--; updateLivesDisplay(); b.disabled = true; if (mode === 3) { b.style.opacity = "0.2"; b.style.border = "4px solid black"; } else { b.classList.add("wrong"); } if (lives <= 0) { const correctBtn = Array.from(allButtons).find(btn => parseInt(btn.dataset.nr) === currentSdg.nr); if (correctBtn) { if (mode === 3) correctBtn.style.border = "4px solid white"; else correctBtn.classList.add("correct"); } allButtons.forEach(btn => btn.disabled = true); finishGame(); } }
         }; grid.appendChild(b);
     });
 }
-
 let currentDragData = [];
 function startDragDrop(){
-    currentModeKey = "drag"; score = 0; lives = playerStats.inventory.includes("extra_life") ? 4 : 3;
-    resetDeck(); switchScreen("drag-screen"); document.getElementById("score-label-drag").innerText = score; updateLivesDisplay();
+    currentModeKey = "drag"; score = 0; lives = 3; resetDeck(); document.getElementById("score-label-drag").innerText = score; updateLivesDisplay();
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("game-over-screen").classList.remove("active"); document.getElementById("drag-screen").classList.add("active");
     const pool = document.getElementById("drag-pool"); pool.ondragover = e => e.preventDefault(); pool.ondrop = e => handleDropOnPool(e); loadDrag();
 }
 function loadDrag(){
-    currentDragData = []; while(currentDragData.length < 4) { let card = drawCard(); if(!currentDragData.find(c=>c.nr===card.nr)) currentDragData.push(card); }
+    currentDragData = []; for(let i=0; i<4; i++) currentDragData.push(drawCard());
     const zones = document.getElementById("drop-zones"); const pool = document.getElementById("drag-pool"); zones.innerHTML = ""; pool.innerHTML = "";
-    document.getElementById("check-drag-btn").disabled = false; document.getElementById("next-drag-btn").style.display = "none";
+    document.getElementById("check-drag-btn").style.display = "block"; document.getElementById("check-drag-btn").disabled = false; document.getElementById("next-drag-btn").style.display = "none";
     currentDragData.forEach((s, index) => {
         let z = document.createElement("div"); z.className = "drop-zone"; z.id = "zone-" + index; z.dataset.correctNr = s.nr; z.dataset.occupiedBy = ""; z.innerText = s.titel;
-        z.onclick = () => { if(z.classList.contains("filled") && !z.classList.contains("correct") && !z.classList.contains("wrong")) { ejectItem(z); } };
         z.ondragover = e => e.preventDefault(); z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color")); zones.appendChild(z);
     });
     [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => { createDragItem(s.nr, s.farbe, "pool"); });
 }
-function ejectItem(z) { createDragItem(z.dataset.occupiedBy, z.dataset.color, "pool"); z.className="drop-zone"; z.dataset.occupiedBy=""; z.innerText=z.dataset.originalText; }
 function createDragItem(nr, color, origin) {
-    let box = document.createElement("div"); box.className = "drag-box"; box.style.backgroundColor = color; box.innerText = nr; box.draggable = true; box.id="d"+nr;
-    box.ondragstart = e => { e.dataTransfer.setData("nr", nr); e.dataTransfer.setData("color", color); e.dataTransfer.setData("src", origin==="pool"?"pool":origin); };
-    document.getElementById(origin==="pool"?"drag-pool":origin).appendChild(box);
+    let container = origin === "pool" ? document.getElementById("drag-pool") : document.getElementById(origin); if(document.getElementById("d"+nr)) return;
+    let box = document.createElement("div"); box.id = "d" + nr; box.className = "drag-box"; box.style.backgroundColor = color; box.innerText = nr; box.draggable = true;
+    box.ondragstart = e => { e.dataTransfer.setData("nr", nr); e.dataTransfer.setData("color", color); let parentZone = box.closest(".drop-zone"); e.dataTransfer.setData("sourceId", parentZone ? parentZone.id : "pool"); };
+    box.addEventListener('touchstart', function(e) { let touch = e.touches[0]; box.dataset.startX = touch.clientX; box.dataset.startY = touch.clientY; let parentZone = box.closest(".drop-zone"); box.dataset.sourceId = parentZone ? parentZone.id : "pool"; box.style.position = 'fixed'; box.style.zIndex = '1000'; updatePosition(box, touch); }, {passive: false});
+    box.addEventListener('touchmove', function(e) { e.preventDefault(); updatePosition(box, e.touches[0]); }, {passive: false});
+    box.addEventListener('touchend', function(e) { box.style.display = 'none'; let touch = e.changedTouches[0]; let target = document.elementFromPoint(touch.clientX, touch.clientY); box.style.display = 'flex'; box.style.position = 'static'; let zone = target ? target.closest('.drop-zone') : null; let pool = target ? target.closest('#drag-pool') : null; if (zone) handleDrop(zone, nr, color); else if (pool) handleDropOnPool({ preventDefault: ()=>{}, dataTransfer: { getData: (k)=> (k==="nr"?nr:(k==="color"?color:box.dataset.sourceId)) } }, true); else box.style.position = 'static'; });
+    if(container) container.appendChild(box);
 }
-function handleDrop(z, nr, color) {
-    if(z.dataset.occupiedBy) return; // Full
-    let item = document.getElementById("d"+nr); if(item) item.remove();
-    z.dataset.originalText = z.innerText; z.innerText=""; z.classList.add("filled"); z.dataset.occupiedBy=nr; z.dataset.color=color; createDragItem(nr, color, z.id);
+function updatePosition(el, touch) { el.style.left = (touch.clientX - 25) + 'px'; el.style.top = (touch.clientY - 25) + 'px'; }
+function handleDropOnPool(e, isTouch=false) {
+    e.preventDefault(); let nr = e.dataTransfer.getData("nr"); let color = e.dataTransfer.getData("color"); let sourceId = isTouch ? e.dataTransfer.getData("sourceId") : e.dataTransfer.getData("sourceId"); 
+    if(sourceId !== "pool") { let sourceZone = document.getElementById(sourceId); if(sourceZone) { sourceZone.classList.remove("filled"); sourceZone.dataset.occupiedBy = ""; sourceZone.innerText = sourceZone.dataset.originalText || sourceZone.innerText.split('\n')[1] || sourceZone.innerText; } let oldEl = document.getElementById("d" + nr); if(oldEl) oldEl.remove(); createDragItem(nr, color, "pool"); }
 }
-function handleDropOnPool(e) {
-    e.preventDefault(); let nr = e.dataTransfer.getData("nr"); let color = e.dataTransfer.getData("color"); let src = e.dataTransfer.getData("src");
-    if(src!=="pool") { document.getElementById("d"+nr).remove(); createDragItem(nr,color,"pool"); document.getElementById(src).classList.remove("filled"); }
+function handleDrop(zone, nr, color) {
+    if(zone.classList.contains("filled")) { let oldNr = zone.dataset.occupiedBy; let oldColor = zone.dataset.color; let oldEl = document.getElementById("d" + oldNr); if(oldEl) oldEl.remove(); createDragItem(oldNr, oldColor, "pool"); }
+    let dragItem = document.getElementById("d" + nr); if(dragItem) { let parentZone = dragItem.closest(".drop-zone"); if(parentZone) { parentZone.classList.remove("filled"); parentZone.dataset.occupiedBy = ""; parentZone.innerText = parentZone.dataset.originalText || parentZone.innerText.split('\n')[1] || parentZone.innerText; } dragItem.remove(); }
+    if(!zone.dataset.originalText) zone.dataset.originalText = zone.innerText; zone.innerHTML = ""; zone.classList.add("filled"); zone.dataset.occupiedBy = nr; zone.dataset.color = color; createDragItem(nr, color, zone.id);
+    let lbl = document.createElement("small"); lbl.style.marginTop = "5px"; lbl.style.pointerEvents = "none"; lbl.innerText = zone.dataset.originalText; zone.appendChild(lbl);
 }
 function checkDragAssignments() {
-    let err=0; currentDragData.forEach((s,i)=>{
-        let z=document.getElementById("zone-"+i);
-        if(z.dataset.occupiedBy==z.dataset.correctNr) z.classList.add("correct"); else { z.classList.add("wrong"); err++; }
-    });
-    if(err===0) { score+=4; document.getElementById("score-label-drag").innerText=score; document.getElementById("next-drag-btn").style.display="block"; document.getElementById("check-drag-btn").disabled=true; }
-    else { lives--; updateLivesDisplay(); if(lives<=0) finishGame(); else setTimeout(loadDrag, 1000); }
+    let errors = 0; currentDragData.forEach((s, index) => { const zone = document.getElementById("zone-" + index); const occupied = zone.dataset.occupiedBy; if (occupied == zone.dataset.correctNr) { zone.classList.add("correct"); } else { zone.classList.add("wrong"); zone.classList.add("shake-it"); errors++; } });
+    if (errors === 0) { score += 4; playerStats.coins += 2; saveStats(); document.getElementById("score-label-drag").innerText = score; document.getElementById("check-drag-btn").style.display = "none"; document.getElementById("next-drag-btn").style.display = "block"; } else { lives--; updateLivesDisplay(); document.getElementById("check-drag-btn").disabled = true; setTimeout(() => { currentDragData.forEach((s, index) => { document.getElementById("zone-" + index).classList.remove("shake-it"); }); if(lives <= 0) finishGame(); else loadDrag(); }, 1200); }
 }
 
+/* --- GAME OVER HANDLING --- */
 function finishGame() {
-    if(score > playerStats.scores[currentModeKey]) playerStats.scores[currentModeKey] = score;
-    playerStats.coins += score;
-    saveStats();
-    if(playerStats.username && window.submitScoreToDB) window.submitScoreToDB(playerStats.username, score, currentModeKey, playerStats.activeAvatar);
-    
+    if(score > playerStats.scores[currentModeKey]) { playerStats.scores[currentModeKey] = score; saveStats(); }
     document.getElementById("go-score").innerText = score;
-    switchScreen("game-over-screen");
-}
-function buyContinue() { if(playerStats.coins>=10) { playerStats.coins-=10; lives=3; switchScreen(currentModeKey==="drag"?"drag-screen":"quiz-screen"); } }
-function restartGame() { if(currentModeKey==="drag") startDragDrop(); else startQuiz(quizModeN); }
+    document.getElementById("go-best").innerText = playerStats.scores[currentModeKey];
+    
+    // Reset Inputs
+    document.getElementById("player-name").value = playerStats.username || "";
+    document.getElementById("submit-container").style.display = "flex";
+    document.getElementById("submit-message").style.display = "none";
+    document.querySelector(".submit-btn").disabled = false;
+    document.querySelector(".submit-btn").innerText = "SENDEN";
 
+    // Continue Logic
+    const btnCont = document.getElementById("btn-continue");
+    if(playerStats.coins >= continueCost) { btnCont.disabled = false; btnCont.innerHTML = `Weiterspielen (-${continueCost} 🪙)`; btnCont.style.opacity = "1"; } else { btnCont.disabled = true; btnCont.innerHTML = `Zu wenig Coins (${playerStats.coins}/${continueCost})`; btnCont.style.opacity = "0.5"; }
+    
+    document.getElementById("game-over-screen").classList.add("active");
+    
+    if(window.loadLeaderboard) window.loadLeaderboard(currentModeKey, "leaderboard-content");
+}
+
+function submitScore() {
+    const name = document.getElementById("player-name").value;
+    if(!name) { alert("Bitte Namen eingeben!"); return; }
+    
+    playerStats.username = name; saveStats(); // Name merken
+    
+    if(window.submitScoreToDB) {
+        document.querySelector(".submit-btn").disabled = true;
+        document.querySelector(".submit-btn").innerText = "...";
+        
+        window.submitScoreToDB(name, score, currentModeKey)
+        .then((result) => {
+            document.getElementById("submit-container").style.display = "none";
+            const msg = document.getElementById("submit-message");
+            msg.style.display = "block";
+            
+            // User Feedback
+            if(result === "new") msg.innerText = "Neuer Eintrag erstellt!";
+            else if(result === "updated") msg.innerText = "Highscore verbessert! 🎉";
+            else if(result === "lower") msg.innerText = "Dein alter Highscore war besser.";
+            else msg.innerText = "Gesendet.";
+        })
+        .catch(() => {
+             document.querySelector(".submit-btn").disabled = false;
+             document.querySelector(".submit-btn").innerText = "Retry";
+        });
+    } else {
+        alert("Datenbank noch nicht verbunden!");
+    }
+}
+
+function buyContinue() {
+    if(playerStats.coins >= continueCost) {
+        playerStats.coins -= continueCost; saveStats();
+        lives = 3; updateLivesDisplay(); updateUIStats();
+        document.getElementById("game-over-screen").classList.remove("active");
+        if(currentModeKey.includes("quiz")) nextQuizQuestion(); else loadDrag();
+    }
+}
+function restartGame() { if(currentModeKey === "quiz_easy") startQuiz(4); else if(currentModeKey === "quiz_hard") startQuiz(6); else startDragDrop(); }
+
+/* --- FLASHCARDS & TABLE --- */
 let cardIdx=0; let flashcardDeck = []; let isRandomFlash = false;
-function startFlashcards(random){ isRandomFlash = random; switchScreen("flashcard-screen"); if(random) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); else flashcardDeck = [...SDGS]; cardIdx=0; renderCardFront(); }
+function startFlashcards(random){ isRandomFlash = random; document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("flashcard-screen").classList.add("active"); if(random) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); else flashcardDeck = [...SDGS]; cardIdx=0; renderCardFront(); }
 function renderCardFront() { let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card"); c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`; c.dataset.side = "front"; document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`; }
 function renderCardBack() { let s = flashcardDeck[cardIdx]; const c=document.getElementById("main-card"); c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}">`; c.dataset.side = "back"; }
 function flipCard(){ const c=document.getElementById("main-card"); if (c.dataset.side === "front") renderCardBack(); else renderCardFront(); }
 function nextCard(){ cardIdx++; if(cardIdx >= 17) { if(isRandomFlash) flashcardDeck = [...SDGS].sort(() => Math.random() - 0.5); cardIdx = 0; } renderCardFront(); }
 function prevCard(){ cardIdx--; if(cardIdx < 0) cardIdx = 16; renderCardFront(); }
-function showTable(){ switchScreen("table-screen"); const cont = document.getElementById("table-content"); cont.innerHTML = ""; SDGS.forEach(s=>{ const row = document.createElement("div"); row.className="list-row"; row.innerHTML=`<div class="row-nr" style="background:${s.farbe}">${s.nr}</div><img src="${getImgUrl(s.nr)}" class="row-img"><div class="row-text">${s.titel}</div>`; cont.appendChild(row); }); }
+function showTable(){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById("table-screen").classList.add("active"); const cont = document.getElementById("table-content"); cont.innerHTML = ""; SDGS.forEach(s=>{ const row = document.createElement("div"); row.className="list-row"; row.innerHTML=`<div class="row-nr" style="background:${s.farbe}">${s.nr}</div><img src="${getImgUrl(s.nr)}" class="row-img"><div class="row-text">${s.titel}</div>`; cont.appendChild(row); }); }
 </script>
 </body>
 </html>
