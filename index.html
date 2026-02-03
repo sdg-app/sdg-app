@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SDG Master Quiz Web</title>
+    <title>SDG Master - Ultimate Edition</title>
     <style>
         :root {
             --bg-dark: #2D2D2D;
@@ -12,6 +12,7 @@
             --text-white: #ffffff;
             --correct-green: #4C9F38;
             --wrong-red: #E5243B;
+            --coin-gold: #FFD700;
         }
 
         body {
@@ -22,6 +23,7 @@
             display: flex;
             justify-content: center;
             touch-action: manipulation;
+            user-select: none;
         }
 
         #app-container {
@@ -36,8 +38,10 @@
         .screen { display: none; flex-direction: column; }
         .active { display: flex; }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; }
+        .back-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; margin-right: 10px;}
+
+        .currency-display { color: var(--coin-gold); font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 16px; }
 
         /* Menü */
         .menu-btn {
@@ -45,7 +49,12 @@
             margin: 10px 0; padding: 18px;
             border-radius: 8px; cursor: pointer;
             display: flex; justify-content: space-between; align-items: center;
+            transition: transform 0.1s;
+            position: relative;
         }
+        .menu-btn:active { transform: scale(0.98); }
+        .achievement-star { font-size: 24px; color: #555; transition: color 0.3s; }
+        .achievement-star.unlocked { color: var(--accent); text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
 
         /* Quiz UI */
         .sdg-display-box {
@@ -53,6 +62,7 @@
             display: flex; justify-content: center; align-items: center;
             border-radius: 12px; margin-bottom: 30px;
             font-size: 80px; font-weight: bold;
+            transition: all 0.3s;
         }
         .sdg-display-box img { max-height: 140px; border-radius: 8px; }
         
@@ -61,97 +71,142 @@
             background-color: var(--card-bg); border: none; color: white;
             padding: 10px; border-radius: 6px; cursor: pointer; min-height: 90px;
             font-size: 13px; display: flex; align-items: center; justify-content: center;
-            text-align: center; line-height: 1.2;
+            text-align: center; line-height: 1.2; transition: all 0.2s;
         }
+        .option-btn:disabled { cursor: default; }
+
+        /* Game Over Screen */
+        #game-over-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 100;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box; text-align: center;
+        }
+        #game-over-screen.active { display: flex; }
+        
+        .go-title { font-size: 32px; color: var(--wrong-red); margin-bottom: 20px; font-weight: bold; }
+        .go-stats { margin-bottom: 30px; width: 100%; background: #333; padding: 15px; border-radius: 8px; }
+        .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 18px; }
+        
+        .leaderboard { width: 100%; margin-bottom: 20px; text-align: left; }
+        .lb-header { display: flex; justify-content: space-between; color: #aaa; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #555; color: #888; }
+        .lb-row.highlight { color: var(--accent); font-weight: bold; border-color: var(--accent); }
+
+        .go-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        .btn-continue { background: var(--accent); color: black; }
+        .btn-restart { background: var(--card-bg); color: white; border: 1px solid #666; }
+        .btn-menu { background: transparent; color: #aaa; }
 
         /* Drag & Drop */
         .drop-zone-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .drop-zone {
-            background: var(--card-bg);
-            min-height: 130px;
-            border: 2px dashed #666;
-            border-radius: 8px;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            text-align: center; padding: 10px; font-size: 12px;
-            transition: 0.3s; line-height: 1.3;
+        .drop-zone { 
+            background: var(--card-bg); min-height: 130px; border: 2px dashed #666; 
+            border-radius: 8px; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; text-align: center; padding: 10px; font-size: 12px; position: relative;
         }
-        .drop-zone.filled { border-style: solid; border-color: transparent; }
+        .drop-zone.filled { border-style: solid; border-color: transparent; cursor: pointer; }
+        /* Kleines Icon um zu zeigen, dass man es entfernen kann */
+        .drop-zone.filled::after { content: "⇄"; position: absolute; top: 2px; right: 5px; font-size: 16px; color: #fff; opacity: 0.5; }
 
-        .drag-items {
-            display: flex; justify-content: space-around;
-            padding: 15px; background: #333; border-radius: 8px;
-            min-height: 70px; margin-bottom: 20px;
+        .drag-items { display: flex; justify-content: space-around; padding: 15px; background: #333; border-radius: 8px; min-height: 70px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .drag-box { 
+            width: 55px; height: 55px; display: flex; justify-content: center; align-items: center; 
+            font-weight: bold; font-size: 22px; color: white; border-radius: 8px; cursor: grab; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex-shrink: 0;
         }
-        .drag-box {
-            width: 55px; height: 55px;
-            display: flex; justify-content: center; align-items: center;
-            font-weight: bold; font-size: 22px; color: white;
-            border-radius: 8px; cursor: grab;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            touch-action: none;
-        }
-
-        .action-btn {
-            background-color: var(--accent); color: black;
-            border: none; padding: 15px; border-radius: 8px;
-            font-weight: bold; cursor: pointer; font-size: 16px;
-            margin-top: 10px; width: 100%;
-        }
-
-        /* Karteikarten */
-        .flashcard {
-            width: 100%; max-width: 300px; height: 400px; margin: 20px auto;
-            background: white; color: black; border-radius: 15px;
-            display: flex; justify-content: center; align-items: center;
-            text-align: center; cursor: pointer; padding: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-        .flashcard img { border-radius: 10px; width: 280px; height: auto; }
-
-        /* Tabelle / Liste (FIXED SIZE) */
-        .list-row {
-            display: flex; background: var(--card-bg);
-            margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden;
-        }
-        .row-nr { width: 45px; height: 60px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
-        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; object-fit: contain; }
-        .row-text { font-size: 13px; padding-right: 10px; flex-grow: 1; }
+        .action-btn { background-color: var(--accent); color: black; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
 
         .correct { background-color: var(--correct-green) !important; color: white !important; }
         .wrong { background-color: var(--wrong-red) !important; color: white !important; }
+        
+        /* Flashcards */
+        .flashcard { width: 100%; max-width: 300px; height: 400px; margin: 20px auto; background: white; color: black; border-radius: 15px; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; padding: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .flashcard img { border-radius: 10px; width: 280px; height: auto; }
+
+        /* Liste */
+        .list-row { display: flex; background: var(--card-bg); margin-bottom: 6px; align-items: center; border-radius: 4px; overflow: hidden; }
+        .row-nr { width: 45px; height: 60px; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0; }
+        .row-img { width: 50px; height: 50px; margin: 0 10px; border-radius: 3px; flex-shrink: 0; object-fit: contain; }
+        .row-text { font-size: 13px; padding-right: 10px; flex-grow: 1; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="menu-screen" class="screen active">
-        <h1 style="text-align:center">SDG LERN-APP</h1>
-        <div class="menu-btn" onclick="startQuiz(4)">Quiz (Einfach)</div>
-        <div class="menu-btn" onclick="startQuiz(6)">Quiz (Schwer)</div>
-        <div class="menu-btn" onclick="startQuiz(4,true)">1 Minute Challenge</div>
-        <div class="menu-btn" onclick="startDragDrop()">Ziehen & Ablegen</div>
+        <h1 style="text-align:center; color:var(--accent);">SDG MASTER</h1>
+        <div style="text-align:center; margin-bottom:20px;">
+            <span class="currency-display" style="justify-content:center; font-size:20px;">
+                🪙 <span id="menu-coins">0</span>
+            </span>
+            <div style="font-size:12px; color:#888; margin-top:5px;">Sammle Sterne bei 80+ Punkten!</div>
+        </div>
+        
+        <div class="menu-btn" onclick="startQuiz(4)">
+            <span>Quiz (Normal)</span>
+            <span id="star-quiz-easy" class="achievement-star">☆</span>
+        </div>
+        
+        <div class="menu-btn" onclick="startQuiz(6)">
+            <span>Quiz (Schwer & Tückisch)</span>
+            <span id="star-quiz-hard" class="achievement-star">☆</span>
+        </div>
+        
+        <div class="menu-btn" onclick="startDragDrop()">
+            <span>Ziehen & Ablegen (Game)</span>
+            <span id="star-drag" class="achievement-star">☆</span>
+        </div>
+        
+        <div style="border-top:1px solid #555; margin:10px 0;"></div>
+
         <div class="menu-btn" onclick="startFlashcards()">Karteikarten</div>
-        <div class="menu-btn" onclick="showTable()">Tabelle</div>
+        <div class="menu-btn" onclick="showTable()">Tabelle lernen</div>
     </div>
 
-<div id="quiz-screen" class="screen">
+    <div id="quiz-screen" class="screen">
         <div class="top-bar">
             <button class="back-btn" onclick="showMenu()">←</button>
-            <span id="lives-label" style="font-size:20px;">❤️❤️❤️</span>
-            <span id="timer-label"></span>
-            <span id="score-label">Punkte: 0</span>
+            <span id="lives-label-quiz" style="font-size:20px; letter-spacing:2px;">❤️❤️❤️</span>
+            <span class="currency-display">🪙 <span id="ingame-coins-quiz">0</span></span>
+            <span id="score-label" style="font-weight:bold;">0</span>
         </div>
         <div id="quiz-display" class="sdg-display-box"></div>
         <div id="quiz-options" class="options-grid"></div>
     </div>
 
     <div id="drag-screen" class="screen">
-        <div class="top-bar"><button class="back-btn" onclick="showMenu()">←</button><span>Zuordnung prüfen</span></div>
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">←</button>
+            <span id="lives-label-drag" style="font-size:20px; letter-spacing:2px;">❤️❤️❤️</span>
+            <span class="currency-display">🪙 <span id="ingame-coins-drag">0</span></span>
+            <span id="score-label-drag" style="font-weight:bold;">0</span>
+        </div>
         <div id="drop-zones" class="drop-zone-container"></div>
         <div id="drag-pool" class="drag-items"></div>
-        <button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Überprüfen</button>
+        <button id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button>
         <button id="next-drag-btn" class="action-btn" style="display:none;" onclick="loadDrag()">Nächste Runde</button>
+    </div>
+
+    <div id="game-over-screen">
+        <div class="go-title">GAME OVER</div>
+        
+        <div class="go-stats">
+            <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" style="color:white">0</span></div>
+            <div class="stat-row"><span>Highscore (<span id="go-mode-name" style="font-size:14px; color:#aaa;">Modus</span>):</span> <span id="go-best" style="color:var(--accent)">0</span></div>
+        </div>
+
+        <div class="leaderboard">
+            <div class="lb-header">
+                <span>Platzierung</span>
+                <span>Punkte</span>
+            </div>
+            <div id="leaderboard-content"></div>
+        </div>
+
+        <button class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
+        <button class="go-btn btn-restart" onclick="restartGame()">Neuer Versuch</button>
+        <button class="go-btn btn-menu" onclick="showMenu()">Zum Hauptmenü</button>
     </div>
 
     <div id="flashcard-screen" class="screen">
@@ -170,6 +225,7 @@
 </div>
 
 <script>
+/* DATEN */
 const SDGS = [
     {nr: 1, farbe: "#E5243B", titel: "Keine Armut"},
     {nr: 2, farbe: "#DDA63A", titel: "Kein Hunger"},
@@ -190,8 +246,57 @@ const SDGS = [
     {nr: 17, farbe: "#19486A", titel: "Partnerschaften zur Erreichung der Ziele"}
 ];
 
-let score=0, lives=3, timer=null, currentSdg=null, cardIdx=0, cardFront=true;
-let currentDragData = [];
+/* STATE MANAGEMENT MIT MEHREREN HIGHSCORES */
+let playerStats = {
+    coins: 0,
+    scores: {
+        quiz_easy: 0,
+        quiz_hard: 0,
+        drag: 0
+    }
+};
+
+// Laden und Migrieren von alten Daten
+if(localStorage.getItem("sdgAppData")) {
+    let data = JSON.parse(localStorage.getItem("sdgAppData"));
+    // Falls alte Datenstruktur, konvertieren
+    if(!data.scores) {
+        data.scores = { quiz_easy: data.highScore || 0, quiz_hard: 0, drag: 0 };
+    }
+    playerStats = data;
+}
+
+function saveStats() {
+    localStorage.setItem("sdgAppData", JSON.stringify(playerStats));
+    updateUIStats();
+}
+
+function updateUIStats() {
+    document.getElementById("menu-coins").innerText = playerStats.coins;
+    document.getElementById("ingame-coins-quiz").innerText = playerStats.coins;
+    document.getElementById("ingame-coins-drag").innerText = playerStats.coins;
+    
+    // Sterne Update (80 Punkte Threshold)
+    updateStar("star-quiz-easy", playerStats.scores.quiz_easy);
+    updateStar("star-quiz-hard", playerStats.scores.quiz_hard);
+    updateStar("star-drag", playerStats.scores.drag);
+}
+
+function updateStar(id, score) {
+    const el = document.getElementById(id);
+    if(score >= 80) {
+        el.innerText = "★";
+        el.classList.add("unlocked");
+    } else {
+        el.innerText = "☆";
+        el.classList.remove("unlocked");
+    }
+}
+
+updateUIStats();
+
+let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy"; 
+let continueCost = 10;
 
 function getImgUrl(nr) {
     const padded = nr.toString().padStart(2, "0");
@@ -199,78 +304,50 @@ function getImgUrl(nr) {
 }
 
 function showMenu(){
-    clearInterval(timer);
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("game-over-screen").classList.remove("active");
     document.getElementById("menu-screen").classList.add("active");
+    updateUIStats();
 }
 
-/* --- LEBENSANZEIGE UPDATE --- */
 function updateLivesDisplay() {
     let hearts = "";
     for(let i=0; i<lives; i++) hearts += "❤️";
-    for(let i=lives; i<3; i++) hearts += "🖤"; // Optional: Leere Herzen anzeigen
-    document.getElementById("lives-label").innerText = hearts;
+    for(let i=lives; i<3; i++) hearts += "🖤";
+    document.getElementById("lives-label-quiz").innerText = hearts;
+    document.getElementById("lives-label-drag").innerText = hearts;
 }
 
-/* --- QUIZ LOGIK (MIT HERZEN) --- */
-function startQuiz(n, timed=false){
-    score=0; 
-    lives=3; // Start mit 3 Leben
-    document.getElementById("score-label").innerText="Punkte: 0";
+/* --- QUIZ --- */
+function startQuiz(n){
+    quizModeN = n;
+    currentModeKey = (n > 4) ? "quiz_hard" : "quiz_easy"; // Key setzen
+    score = 0; lives = 3;
+    document.getElementById("score-label").innerText = score;
     updateLivesDisplay();
-
+    
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("game-over-screen").classList.remove("active");
     document.getElementById("quiz-screen").classList.add("active");
-    
-    if(timed){
-        let t=60; document.getElementById("timer-label").innerText=`Zeit: ${t}`;
-        timer=setInterval(()=>{ t--; document.getElementById("timer-label").innerText=`Zeit: ${t}`;
-        if(t<=0){ alert("Zeit abgelaufen!"); showMenu(); }},1000);
-    } else document.getElementById("timer-label").innerText="";
-    
-    nextQuizQuestion(n);
+    nextQuizQuestion();
 }
 
-function nextQuizQuestion(n){
+function nextQuizQuestion(){
     currentSdg = SDGS[Math.floor(Math.random()*17)];
     const display = document.getElementById("quiz-display");
     const grid = document.getElementById("quiz-options");
-    
-    // MODUS BESTIMMUNG (Einfach vs Schwer)
-    let mode = 0; 
-    if (n > 4) {
-        mode = Math.floor(Math.random() * 3) + 1; 
-    }
+    let mode = 0; if (quizModeN > 4) mode = Math.floor(Math.random() * 3) + 1; 
 
-    // DISPLAY SETUP
-    display.style.background = "var(--card-bg)";
-    display.style.color = "white";
-    display.style.fontSize = "80px";
-    display.innerHTML = "";
+    display.style.background = "var(--card-bg)"; display.style.color = "white";
+    display.style.fontSize = "80px"; display.innerHTML = ""; display.style.padding = "0";
 
-    if (mode === 0) { // Standard
-        display.style.background = currentSdg.farbe; 
-        display.innerHTML = `<span>${currentSdg.nr}</span>`;
-    } 
-    else if (mode === 1) { // Nur Farbe
-        display.style.background = currentSdg.farbe;
-        display.innerHTML = `<span>?</span>`;
-    } 
-    else if (mode === 2) { // Nur Zahl
-        display.style.background = "#555"; 
-        display.innerHTML = `<span>${currentSdg.nr}</span>`;
-    } 
-    else if (mode === 3) { // Nur Text
-        display.style.background = "#222";
-        display.style.fontSize = "24px";
-        display.style.padding = "20px";
-        display.style.textAlign = "center";
-        display.innerText = currentSdg.titel;
-    }
+    if (mode === 0) { display.style.background = currentSdg.farbe; display.innerHTML = `<span>${currentSdg.nr}</span>`; } 
+    else if (mode === 1) { display.style.background = currentSdg.farbe; display.innerHTML = `<span>?</span>`; } 
+    else if (mode === 2) { display.style.background = "#555"; display.innerHTML = `<span>${currentSdg.nr}</span>`; } 
+    else if (mode === 3) { display.style.background = "#222"; display.style.fontSize = "24px"; display.style.padding = "20px"; display.style.textAlign = "center"; display.innerText = currentSdg.titel; }
 
-    // OPTIONEN GENERIEREN
     let opts = [currentSdg];
-    while(opts.length < n){
+    while(opts.length < quizModeN){
         let r = SDGS[Math.floor(Math.random()*17)];
         if(!opts.find(o => o.nr === r.nr)) opts.push(r);
     }
@@ -278,104 +355,60 @@ function nextQuizQuestion(n){
     grid.innerHTML = "";
     opts.sort(()=>Math.random()-0.5).forEach(o=>{
         let b = document.createElement("button"); 
-        b.className="option-btn"; 
-        b.dataset.nr = o.nr; // Wichtig für das Finden der Lösung
-
-        if (mode === 3) {
-            b.innerText = o.nr;
-            b.style.backgroundColor = o.farbe;
-            b.style.fontSize = "40px";
-            b.style.fontWeight = "bold";
-        } else {
-            b.innerText = o.titel;
-            b.style.backgroundColor = "var(--card-bg)";
-            b.style.fontSize = "13px";
-        }
+        b.className="option-btn"; b.dataset.nr = o.nr;
+        if (mode === 3) { b.innerText = o.nr; b.style.backgroundColor = o.farbe; b.style.fontSize = "40px"; b.style.fontWeight = "bold"; } 
+        else { b.innerText = o.titel; b.style.backgroundColor = "var(--card-bg)"; b.style.fontSize = "13px"; }
 
         b.onclick = () => {
             const isCorrect = o.nr === currentSdg.nr;
-            
+            const allButtons = grid.querySelectorAll("button");
             if (isCorrect) {
-                // --- RICHTIG ---
-                // 1. Visuelles Feedback
-                if (mode === 3) {
-                    b.style.border = "4px solid white";
-                    b.style.opacity = "1";
-                } else {
-                    b.classList.add("correct");
-                }
-                
-                // 2. Alle Buttons sperren (damit man nicht mehr klicken kann)
-                const allButtons = grid.querySelectorAll("button");
                 allButtons.forEach(btn => btn.disabled = true);
-
-                // 3. Score hoch & Nächste Frage
-                score++;
-                document.getElementById("score-label").innerText="Punkte: "+score;
-                setTimeout(()=>nextQuizQuestion(n), 1500);
-
+                if (mode === 3) { b.style.border = "4px solid white"; b.style.opacity = "1"; } else { b.classList.add("correct"); }
+                score++; playerStats.coins += 1; saveStats();
+                document.getElementById("score-label").innerText = score;
+                setTimeout(nextQuizQuestion, 1500);
             } else {
-                // --- FALSCH ---
-                // 1. Leben abziehen
-                lives--;
-                updateLivesDisplay();
-
-                // 2. Button als falsch markieren und DEAKTIVIEREN
-                b.disabled = true; // Dieser Button kann nicht mehr geklickt werden
-                
-                if (mode === 3) {
-                    b.style.opacity = "0.2";
-                    b.style.border = "4px solid black";
-                } else {
-                    b.classList.add("wrong");
-                }
-
-                // 3. PRÜFEN OB GAME OVER
+                lives--; updateLivesDisplay(); b.disabled = true;
+                if (mode === 3) { b.style.opacity = "0.2"; b.style.border = "4px solid black"; } else { b.classList.add("wrong"); }
                 if (lives <= 0) {
-                    // Alle Herzen weg -> Lösung zeigen & Ende
-                    const allButtons = grid.querySelectorAll("button");
                     const correctBtn = Array.from(allButtons).find(btn => parseInt(btn.dataset.nr) === currentSdg.nr);
-                    
-                    if (correctBtn) {
-                        if (mode === 3) {
-                            correctBtn.style.border = "4px solid white";
-                            correctBtn.style.transform = "scale(1.1)";
-                        } else {
-                            correctBtn.classList.add("correct");
-                        }
-                    }
-
-                    // Alle Buttons sperren
+                    if (correctBtn) { if (mode === 3) correctBtn.style.border = "4px solid white"; else correctBtn.classList.add("correct"); }
                     allButtons.forEach(btn => btn.disabled = true);
-
-                    // Kurz warten, dann Alert und Menü
-                    setTimeout(() => {
-                        alert("Spiel vorbei! Keine Herzen mehr.\nDein Score: " + score);
-                        showMenu();
-                    }, 2000);
+                    finishGame();
                 }
-                // Wenn lives > 0 passiert hier nichts weiter: 
-                // Der Spieler bleibt auf der Seite und muss einen anderen Button klicken.
             }
         };
         grid.appendChild(b);
     });
 }
 
-/* --- DRAG & DROP (unverändert) --- */
+/* --- DRAG & DROP GAME MODE (Optimiert) --- */
+let currentDragData = [];
+
 function startDragDrop(){
+    currentModeKey = "drag";
+    score = 0; lives = 3;
+    document.getElementById("score-label-drag").innerText = score;
+    updateLivesDisplay();
+
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("game-over-screen").classList.remove("active");
     document.getElementById("drag-screen").classList.add("active");
     loadDrag();
 }
+
 function loadDrag(){
     currentDragData = [...SDGS].sort(()=>Math.random()-0.5).slice(0,4);
     const zones = document.getElementById("drop-zones");
     const pool = document.getElementById("drag-pool");
     zones.innerHTML = ""; pool.innerHTML = "";
+    
     document.getElementById("check-drag-btn").style.display = "block";
     document.getElementById("check-drag-btn").disabled = false;
     document.getElementById("next-drag-btn").style.display = "none";
+
+    // Drop Zones erstellen
     currentDragData.forEach((s, index) => {
         let z = document.createElement("div");
         z.className = "drop-zone";
@@ -383,91 +416,228 @@ function loadDrag(){
         z.dataset.correctNr = s.nr;
         z.dataset.occupiedBy = "";
         z.innerText = s.titel;
+        
+        // Klick entfernt Item wieder
+        z.onclick = () => {
+            if(z.classList.contains("filled") && !z.classList.contains("correct") && !z.classList.contains("wrong")) {
+                ejectItemFromZone(z);
+            }
+        };
+
         z.ondragover = e => e.preventDefault();
         z.ondrop = e => handleDrop(z, e.dataTransfer.getData("nr"), e.dataTransfer.getData("color"));
         zones.appendChild(z);
     });
+
+    // Draggables erstellen
     [...currentDragData].sort(()=>Math.random()-0.5).forEach(s => {
-        let box = document.createElement("div");
-        box.id = "d" + s.nr;
-        box.className = "drag-box";
-        box.style.backgroundColor = s.farbe;
-        box.innerText = s.nr;
-        box.draggable = true;
-        box.ondragstart = e => {
-            e.dataTransfer.setData("nr", s.nr);
-            e.dataTransfer.setData("color", s.farbe);
-        };
-        box.addEventListener('touchstart', function(e) {
-            let touch = e.touches[0];
-            box.dataset.startX = touch.clientX;
-            box.dataset.startY = touch.clientY;
-            box.style.position = 'fixed';
-            box.style.zIndex = '1000';
-            updatePosition(box, touch);
-        }, {passive: false});
-        box.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-            let touch = e.touches[0];
-            updatePosition(box, touch);
-        }, {passive: false});
-        box.addEventListener('touchend', function(e) {
-            box.style.display = 'none';
-            let touch = e.changedTouches[0];
-            let target = document.elementFromPoint(touch.clientX, touch.clientY);
-            box.style.display = 'flex';
-            box.style.position = 'static';
-            let zone = target ? target.closest('.drop-zone') : null;
-            if (zone) handleDrop(zone, s.nr, s.farbe);
-        });
-        pool.appendChild(box);
+        createDragItem(s.nr, s.farbe);
     });
 }
-function updatePosition(el, touch) {
-    el.style.left = (touch.clientX - 25) + 'px';
-    el.style.top = (touch.clientY - 25) + 'px';
+
+// Hilfsfunktion: Wirft Item aus Zone zurück in den Pool
+function ejectItemFromZone(zone) {
+    let nr = zone.dataset.occupiedBy;
+    let color = zone.dataset.color;
+    // Zone reset
+    zone.innerText = zone.dataset.originalText || zone.innerText.split('\n')[1] || zone.innerText; // Fallback für Text
+    zone.classList.remove("filled");
+    zone.dataset.occupiedBy = "";
+    // Zurück in Pool
+    createDragItem(nr, color);
 }
+
+function createDragItem(nr, color) {
+    let pool = document.getElementById("drag-pool");
+    let box = document.createElement("div");
+    box.id = "d" + nr;
+    box.className = "drag-box";
+    box.style.backgroundColor = color;
+    box.innerText = nr;
+    box.draggable = true;
+    
+    box.ondragstart = e => {
+        e.dataTransfer.setData("nr", nr);
+        e.dataTransfer.setData("color", color);
+    };
+
+    // Touch Support
+    box.addEventListener('touchstart', function(e) {
+        let touch = e.touches[0]; box.dataset.startX = touch.clientX; box.dataset.startY = touch.clientY;
+        box.style.position = 'fixed'; box.style.zIndex = '1000'; updatePosition(box, touch);
+    }, {passive: false});
+    box.addEventListener('touchmove', function(e) { e.preventDefault(); updatePosition(box, e.touches[0]); }, {passive: false});
+    box.addEventListener('touchend', function(e) {
+        box.style.display = 'none'; let touch = e.changedTouches[0]; let target = document.elementFromPoint(touch.clientX, touch.clientY);
+        box.style.display = 'flex'; box.style.position = 'static'; let zone = target ? target.closest('.drop-zone') : null;
+        if (zone) handleDrop(zone, nr, color);
+    });
+
+    pool.appendChild(box);
+}
+
+function updatePosition(el, touch) { el.style.left = (touch.clientX - 25) + 'px'; el.style.top = (touch.clientY - 25) + 'px'; }
+
 function handleDrop(zone, nr, color) {
-    zone.innerHTML = `<div class="drag-box" style="background:${color}">${nr}</div><small style="margin-top:5px; display:block;">${zone.innerText.split('\n')[0]}</small>`;
+    // SPEZIAL-FEATURE: AUTO-REPLACE (TAUSCHEN)
+    // Wenn Zone voll ist, wirf das alte Item raus und nimm das neue an
+    if(zone.classList.contains("filled")) {
+        // Erstes merken, was drin war
+        let oldNr = zone.dataset.occupiedBy;
+        let oldColor = zone.dataset.color;
+        
+        // Altes Item zurück in den Pool werfen
+        createDragItem(oldNr, oldColor);
+    }
+
+    // Jetzt das neue Item platzieren
+    zone.dataset.originalText = zone.innerText; // Text sichern
+    zone.innerHTML = `<div class="drag-box" style="background:${color}; pointer-events:none;">${nr}</div><small style="margin-top:5px; pointer-events:none;">${zone.innerText}</small>`;
     zone.classList.add("filled");
     zone.dataset.occupiedBy = nr;
-    const dragItem = document.getElementById("d" + nr);
+    zone.dataset.color = color;
+    
+    // Das gezogene Item aus dem Pool entfernen
+    const dragItem = document.getElementById("d" + nr); 
     if(dragItem) dragItem.remove();
 }
+
 function checkDragAssignments() {
+    let errors = 0;
     currentDragData.forEach((s, index) => {
         const zone = document.getElementById("zone-" + index);
         const occupied = zone.dataset.occupiedBy;
-        if (occupied == zone.dataset.correctNr) zone.classList.add("correct");
-        else zone.classList.add("wrong");
+        if (occupied == zone.dataset.correctNr) { zone.classList.add("correct"); } 
+        else { zone.classList.add("wrong"); errors++; }
     });
-    document.getElementById("check-drag-btn").disabled = true;
-    document.getElementById("next-drag-btn").style.display = "block";
+
+    if (errors === 0) {
+        score += 4; playerStats.coins += 2; saveStats();
+        document.getElementById("score-label-drag").innerText = score;
+        document.getElementById("check-drag-btn").style.display = "none";
+        document.getElementById("next-drag-btn").style.display = "block";
+    } else {
+        lives--; updateLivesDisplay(); document.getElementById("check-drag-btn").disabled = true;
+        if(lives <= 0) { setTimeout(finishGame, 1000); } 
+        else { setTimeout(() => { alert("Ein Herz verloren! Nächste Runde..."); loadDrag(); }, 1000); }
+    }
 }
 
-/* --- KARTEIKARTEN (unverändert) --- */
+/* --- ALLGEMEINE GAME OVER LOGIK --- */
+function finishGame() {
+    let currentHighScore = playerStats.scores[currentModeKey];
+
+    // Highscore nur für den AKTUELLEN Modus updaten
+    if(score > currentHighScore) {
+        playerStats.scores[currentModeKey] = score;
+        currentHighScore = score;
+        saveStats();
+    }
+    
+    // UI Update
+    document.getElementById("go-score").innerText = score;
+    document.getElementById("go-best").innerText = currentHighScore;
+    
+    // Schönen Namen für den Modus anzeigen
+    let modeName = "Unbekannt";
+    if(currentModeKey === "quiz_easy") modeName = "Quiz Normal";
+    if(currentModeKey === "quiz_hard") modeName = "Quiz Schwer";
+    if(currentModeKey === "drag") modeName = "Zuordnen";
+    document.getElementById("go-mode-name").innerText = modeName;
+    
+    // Leaderboard für diesen Modus erstellen
+    const lbContainer = document.getElementById("leaderboard-content");
+    lbContainer.innerHTML = "";
+    
+    // User Eintrag (Highlight)
+    let userRow = document.createElement("div");
+    userRow.className = "lb-row highlight";
+    userRow.innerHTML = `<span>#1 DU (Aktuell)</span><span>${score}</span>`;
+    lbContainer.appendChild(userRow);
+
+    // Highscore Eintrag (falls abweichend)
+    if (currentHighScore > score) {
+         let highRow = document.createElement("div");
+        highRow.className = "lb-row";
+        highRow.style.color = "var(--accent)";
+        highRow.innerHTML = `<span>🏆 Dein Rekord</span><span>${currentHighScore}</span>`;
+        lbContainer.appendChild(highRow);
+    }
+
+    // Platzhalter
+    let placeholder = document.createElement("div");
+    placeholder.className = "lb-row";
+    placeholder.innerHTML = `<span>#2 ---</span><span>---</span>`;
+    lbContainer.appendChild(placeholder);
+    
+    let placeholder2 = document.createElement("div");
+    placeholder2.className = "lb-row";
+    placeholder2.innerHTML = `<span>#3 ...</span><span>...</span>`;
+    lbContainer.appendChild(placeholder2);
+
+
+    // Continue Button Logik
+    const btnCont = document.getElementById("btn-continue");
+    if(playerStats.coins >= continueCost) {
+        btnCont.disabled = false;
+        btnCont.innerHTML = `Weiterspielen (-${continueCost} 🪙)`;
+        btnCont.style.opacity = "1";
+    } else {
+        btnCont.disabled = true;
+        btnCont.innerHTML = `Zu wenig Coins (${playerStats.coins}/${continueCost})`;
+        btnCont.style.opacity = "0.5";
+    }
+
+    document.getElementById("game-over-screen").classList.add("active");
+}
+
+function buyContinue() {
+    if(playerStats.coins >= continueCost) {
+        playerStats.coins -= continueCost;
+        saveStats();
+        lives = 3; 
+        updateLivesDisplay();
+        updateUIStats();
+        document.getElementById("game-over-screen").classList.remove("active");
+        
+        if(currentModeKey.includes("quiz")) {
+             nextQuizQuestion();
+        } else {
+             loadDrag();
+        }
+    }
+}
+
+function restartGame() {
+    if(currentModeKey === "quiz_easy") startQuiz(4);
+    else if(currentModeKey === "quiz_hard") startQuiz(6);
+    else startDragDrop();
+}
+
+/* --- FLASHCARDS & TABLE (Unverändert) --- */
+let cardIdx=0; 
 function startFlashcards(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("flashcard-screen").classList.add("active");
-    cardIdx=0; updateCard();
+    cardIdx=0; renderCardFront(); 
 }
-function updateCard(){
+function renderCardFront() {
     let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
     c.style.background=s.farbe; c.innerHTML=`<h1 style="color:white; font-size:100px">${s.nr}</h1>`;
-    document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`; cardFront=true;
+    c.dataset.side = "front"; document.getElementById("card-progress").innerText=`${cardIdx+1} / 17`;
+}
+function renderCardBack() {
+    let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
+    c.style.background="white"; c.innerHTML=`<img src="${getImgUrl(s.nr)}">`;
+    c.dataset.side = "back";
 }
 function flipCard(){
-    let s=SDGS[cardIdx]; const c=document.getElementById("main-card");
-    if(cardFront){ 
-        c.style.background="white"; 
-        c.innerHTML=`<img src="${getImgUrl(s.nr)}">`; 
-    } else updateCard();
-    cardFront=!cardFront;
+    const c=document.getElementById("main-card");
+    if (c.dataset.side === "front") renderCardBack(); else renderCardFront();
 }
-function nextCard(){ cardIdx=(cardIdx+1)%17; updateCard(); }
-function prevCard(){ cardIdx=(cardIdx+16)%17; updateCard(); }
+function nextCard(){ cardIdx=(cardIdx+1)%17; renderCardFront(); }
+function prevCard(){ cardIdx=(cardIdx+16)%17; renderCardFront(); }
 
-/* --- TABELLE (unverändert) --- */
 function showTable(){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById("table-screen").classList.add("active");
