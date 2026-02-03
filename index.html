@@ -251,7 +251,7 @@ const SDGS = [
 ];
 
 /* THRESHOLDS */
-const TARGETS = { easy: 30, hard: 15, drag: 50 };
+const TARGETS = { easy: 40, hard: 20, drag: 80 };
 
 /* STATE MANAGEMENT */
 let playerStats = { coins: 0, scores: { quiz_easy: 0, quiz_hard: 0, drag: 0 } };
@@ -291,7 +291,7 @@ function resetDeck() { masterDeck = [...SDGS].sort(() => Math.random() - 0.5); }
 function drawCard() { if(masterDeck.length === 0) resetDeck(); return masterDeck.pop(); }
 
 let score=0, lives=3, currentSdg=null, quizModeN=4, currentModeKey="quiz_easy"; 
-let continueCost = 10;
+let continueCost = 30;
 
 function getImgUrl(nr) {
     const padded = nr.toString().padStart(2, "0");
