@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; connect-src 'self' https://*.googleapis.com wss://*.firebaseio.com; img-src 'self' data: https://commons.wikimedia.org https://upload.wikimedia.org; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
     <title>SDG Master - Smart Leaderboard</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -11,56 +13,56 @@
     <!-- Hauptmenü -->
     <section id="menu-screen" class="screen active" aria-labelledby="main-title">
         <header>
-            <h1 id="main-title" class="page-title">SDG MASTER</h1>
+            <h1 id="main-title" class="page-title">SDG Master</h1>
         </header>
 
         <div class="menu-summary">
             <span class="currency-display menu-currency">
                 🪙 <span id="menu-coins">0</span>
             </span>
-            <p class="menu-tagline">Sammle Sterne &amp; miss dich global!</p>
+            <p class="menu-tagline">17 Ziele. Wie viele kennst du?</p>
         </div>
 
         <nav aria-label="Spielmodi und Lernbereiche">
-            <button type="button" class="menu-btn" onclick="openGlobalLeaderboard()">
+            <button type="button" id="open-leaderboard-btn" class="menu-btn">
                 <span class="btn-left">🏆 Globales Leaderboard</span>
                 <span class="menu-arrow" aria-hidden="true">»</span>
             </button>
 
             <hr class="section-divider">
 
-            <button type="button" class="menu-btn" onclick="startQuiz(4)">
+            <button type="button" id="start-quiz-easy-btn" class="menu-btn">
                 <span class="btn-left"><span>Quiz (Normal)</span><span class="btn-sub">Ziel: 30 Pkt.</span></span>
                 <span id="star-quiz-easy" class="achievement-star" aria-hidden="true">☆</span>
             </button>
-            <button type="button" class="menu-btn" onclick="startQuiz(6)">
+            <button type="button" id="start-quiz-hard-btn" class="menu-btn">
                 <span class="btn-left"><span>Quiz (Schwer)</span><span class="btn-sub">Ziel: 15 Pkt.</span></span>
                 <span id="star-quiz-hard" class="achievement-star" aria-hidden="true">☆</span>
             </button>
-            <button type="button" class="menu-btn" onclick="startDragDrop()">
+            <button type="button" id="start-drag-btn" class="menu-btn">
                 <span class="btn-left"><span>Ziehen &amp; Ablegen</span><span class="btn-sub">Ziel: 50 Pkt.</span></span>
                 <span id="star-drag" class="achievement-star" aria-hidden="true">☆</span>
             </button>
 
             <hr class="section-divider">
 
-            <button type="button" class="menu-btn" onclick="startFlashcards(false)">Karteikarten (1–17)</button>
-            <button type="button" class="menu-btn" onclick="startFlashcards(true)">Karteikarten (Zufall)</button>
-            <button type="button" class="menu-btn" onclick="showTable()">Tabelle lernen</button>
+            <button type="button" id="start-flashcards-btn" class="menu-btn">Karteikarten (1–17)</button>
+            <button type="button" id="start-random-flashcards-btn" class="menu-btn">Karteikarten (Zufall)</button>
+            <button type="button" id="show-table-btn" class="menu-btn">Tabelle lernen</button>
         </nav>
     </section>
 
     <!-- Globale Rangliste -->
     <section id="leaderboard-screen" class="screen" aria-labelledby="leaderboard-title">
         <header class="top-bar">
-            <button type="button" class="back-btn" onclick="showMenu()" aria-label="Zurück zum Hauptmenü">←</button>
+            <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
             <h2 id="leaderboard-title" class="screen-heading">Ranglisten</h2>
         </header>
 
         <nav class="lb-tabs" aria-label="Ranglisten-Kategorie">
-            <button type="button" class="tab-btn active-tab" onclick="switchLBTab('quiz_easy', this)">Normal</button>
-            <button type="button" class="tab-btn" onclick="switchLBTab('quiz_hard', this)">Schwer</button>
-            <button type="button" class="tab-btn" onclick="switchLBTab('drag', this)">Drag &amp; Drop</button>
+            <button type="button" class="tab-btn active-tab" data-leaderboard-mode="quiz_easy">Normal</button>
+            <button type="button" class="tab-btn" data-leaderboard-mode="quiz_hard">Schwer</button>
+            <button type="button" class="tab-btn" data-leaderboard-mode="drag">Drag &amp; Drop</button>
         </nav>
 
         <div class="leaderboard">
@@ -77,7 +79,7 @@
     <!-- Quiz -->
     <section id="quiz-screen" class="screen" aria-label="Quiz">
         <header class="top-bar">
-            <button type="button" class="back-btn" onclick="showMenu()" aria-label="Zurück zum Hauptmenü">←</button>
+            <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
             <span id="lives-label-quiz" class="lives-display" aria-label="Drei Leben">❤️❤️❤️</span>
             <span class="currency-display">🪙 <span id="ingame-coins-quiz">0</span></span>
             <span id="score-label" class="score-display">0</span>
@@ -89,71 +91,89 @@
     <!-- Drag-and-Drop-Spiel -->
     <section id="drag-screen" class="screen" aria-label="Ziehen und Ablegen">
         <header class="top-bar">
-            <button type="button" class="back-btn" onclick="showMenu()" aria-label="Zurück zum Hauptmenü">←</button>
+            <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
             <span id="lives-label-drag" class="lives-display" aria-label="Drei Leben">❤️❤️❤️</span>
             <span class="currency-display">🪙 <span id="ingame-coins-drag">0</span></span>
             <span id="score-label-drag" class="score-display">0</span>
         </header>
         <div id="drop-zones" class="drop-zone-container"></div>
         <div id="drag-pool" class="drag-items"></div>
-        <button type="button" id="check-drag-btn" class="action-btn" onclick="checkDragAssignments()">Prüfen</button>
-        <button type="button" id="next-drag-btn" class="action-btn is-hidden" onclick="loadDrag()">Nächste Runde</button>
+        <p id="drag-instructions" class="drag-instructions">Wähle eine Zahl aus und anschließend das passende Ziel.</p>
+        <button type="button" id="check-drag-btn" class="action-btn">Prüfen</button>
+        <button type="button" id="next-drag-btn" class="action-btn is-hidden">Nächste Runde</button>
     </section>
 
     <!-- Karteikarten -->
     <section id="flashcard-screen" class="screen" aria-label="Karteikarten">
         <header class="top-bar">
-            <button type="button" class="back-btn" onclick="showMenu()" aria-label="Zurück zum Hauptmenü">←</button>
+            <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
             <span id="card-progress"></span>
         </header>
-        <button type="button" id="main-card" class="flashcard" onclick="flipCard()" aria-label="Karte umdrehen"></button>
+        <button type="button" id="main-card" class="flashcard" aria-label="Karte umdrehen"></button>
         <nav class="flashcard-navigation" aria-label="Karteikarten-Navigation">
-            <button type="button" class="option-btn flashcard-nav-btn" onclick="prevCard()" aria-label="Vorherige Karte">←</button>
-            <button type="button" class="option-btn flashcard-nav-btn" onclick="nextCard()" aria-label="Nächste Karte">→</button>
+            <button type="button" id="previous-card-btn" class="option-btn flashcard-nav-btn" aria-label="Vorherige Karte">←</button>
+            <button type="button" id="next-card-btn" class="option-btn flashcard-nav-btn" aria-label="Nächste Karte">→</button>
         </nav>
     </section>
 
     <!-- Lerntabelle -->
     <section id="table-screen" class="screen" aria-label="SDG-Lerntabelle">
         <header class="top-bar">
-            <button type="button" class="back-btn" onclick="showMenu()" aria-label="Zurück zum Hauptmenü">←</button>
+            <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
         </header>
         <div id="table-content"></div>
     </section>
 
     <!-- Ergebnis-Overlay -->
     <section id="game-over-screen" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
-        <h2 id="game-over-title" class="go-title">GAME OVER</h2>
-        <div class="go-stats">
-            <div class="stat-row"><span>Dein Ergebnis:</span> <span id="go-score" class="current-score">0</span></div>
-            <div class="stat-row"><span>Persönl. Rekord:</span> <span id="go-best" class="best-score">0</span></div>
-        </div>
+        <div class="game-over-card">
+            <header class="game-over-header">
+                <p class="game-over-eyebrow">Ergebnis</p>
+                <h2 id="game-over-title" class="go-title">Runde vorbei</h2>
+                <p class="game-over-copy">Hier ist dein Ergebnis.</p>
+            </header>
 
-        <form class="name-input-container" id="submit-container" onsubmit="event.preventDefault(); submitScore();">
-            <label for="player-name" class="visually-hidden">Dein Name</label>
-            <input type="text" id="player-name" class="name-input" placeholder="Dein Name" maxlength="12">
-            <button type="submit" class="submit-btn">SENDEN</button>
-        </form>
-        <div id="submit-message" class="submit-message" aria-live="polite">Score gesendet!</div>
-
-        <div class="leaderboard">
-            <div class="lb-header">
-                <span>Globales Leaderboard</span>
-                <span>Punkte</span>
+            <div class="go-stats" aria-label="Ergebnisübersicht">
+                <div class="stat-row">
+                    <span class="stat-label">Dein Ergebnis</span>
+                    <span id="go-score" class="stat-value current-score">0</span>
+                </div>
+                <div class="stat-row stat-row-highlight">
+                    <span class="stat-label">Persönlicher Rekord</span>
+                    <span id="go-best" class="stat-value best-score">0</span>
+                </div>
             </div>
-            <div id="leaderboard-content" class="leaderboard-status" aria-live="polite">
-                Lade Daten...
+
+            <div class="score-submit-block">
+                <p class="section-label">Im Leaderboard eintragen</p>
+                <form class="name-input-container" id="submit-container">
+                    <label for="player-name" class="visually-hidden">Dein Name</label>
+                    <input type="text" id="player-name" class="name-input" placeholder="Dein Name" maxlength="12" autocomplete="nickname">
+                    <button type="submit" class="submit-btn">Score senden</button>
+                </form>
+                <div id="submit-message" class="submit-message" aria-live="polite">Score gesendet!</div>
+            </div>
+
+            <div class="leaderboard game-over-leaderboard">
+                <div class="lb-header">
+                    <span>Top-Spieler</span>
+                    <span>Punkte</span>
+                </div>
+                <div id="leaderboard-content" class="leaderboard-status" aria-live="polite">
+                    Lade Daten...
+                </div>
+            </div>
+
+            <div class="game-over-actions">
+                <button type="button" class="go-btn btn-continue" id="btn-continue">Weiterspielen (-10 🪙)</button>
+                <button type="button" class="go-btn btn-restart" id="restart-game-btn">Neuer Versuch</button>
+                <button type="button" class="go-btn btn-menu" id="game-over-menu-btn">Zurück zum Hauptmenü</button>
             </div>
         </div>
-
-        <button type="button" class="go-btn btn-continue" onclick="buyContinue()" id="btn-continue">Weiterspielen (-10 🪙)</button>
-        <button type="button" class="go-btn btn-restart" onclick="restartGame()">Neuer Versuch</button>
-        <button type="button" class="go-btn btn-menu" onclick="showMenu()">Zum Hauptmenü</button>
     </section>
 </main>
 
 <script type="module" src="js/firebase.js"></script>
-
-<script src="js/app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
