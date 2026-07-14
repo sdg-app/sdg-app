@@ -23,6 +23,28 @@
             <p class="menu-tagline">17 Ziele. Wie viele kennst du?</p>
         </div>
 
+        <section class="progress-panel" aria-label="Dein Lernfortschritt">
+            <div class="progress-level">
+                <span id="level-title">Starter</span>
+                <span id="level-label">Level 1</span>
+            </div>
+            <div class="xp-track" aria-label="Fortschritt zum nächsten Level"><span id="xp-progress"></span></div>
+            <div class="progress-metrics">
+                <span><strong id="best-streak-value">0</strong> Beste Serie</span>
+                <span><strong id="accuracy-value">–</strong> Trefferquote</span>
+                <span><strong id="mastered-goals-value">0</strong> Ziele sicher</span>
+            </div>
+        </section>
+
+        <section class="daily-challenge" aria-labelledby="daily-title">
+            <div>
+                <p class="section-label">Tagesziel</p>
+                <h2 id="daily-title">Heute lernen</h2>
+                <p id="daily-challenge-text">Lade Tagesziel…</p>
+            </div>
+            <div class="daily-progress"><span id="daily-progress-value">0 / 0</span><span id="daily-reward">+0 🪙</span></div>
+        </section>
+
         <nav aria-label="Spielmodi und Lernbereiche">
             <button type="button" id="open-leaderboard-btn" class="menu-btn">
                 <span class="btn-left">🏆 Globales Leaderboard</span>
@@ -36,11 +58,15 @@
                 <span id="star-quiz-easy" class="achievement-star" aria-hidden="true">☆</span>
             </button>
             <button type="button" id="start-quiz-hard-btn" class="menu-btn">
-                <span class="btn-left"><span>Quiz (Schwer)</span><span class="btn-sub">Ziel: 15 Pkt.</span></span>
+                <span class="btn-left"><span>Mix-Challenge</span><span class="btn-sub">6 Antworten, Farben, Zahlen &amp; Namen</span></span>
                 <span id="star-quiz-hard" class="achievement-star" aria-hidden="true">☆</span>
             </button>
+            <button type="button" id="start-focus-btn" class="menu-btn">
+                <span class="btn-left"><span>Fokus-Training</span><span class="btn-sub">Übe die Ziele, bei denen du noch unsicher bist</span></span>
+                <span class="menu-arrow" aria-hidden="true">›</span>
+            </button>
             <button type="button" id="start-drag-btn" class="menu-btn">
-                <span class="btn-left"><span>Ziehen &amp; Ablegen</span><span class="btn-sub">Ziel: 50 Pkt.</span></span>
+                <span class="btn-left"><span>Drag &amp; Drop</span><span class="btn-sub">Ziel: 50 Pkt.</span></span>
                 <span id="star-drag" class="achievement-star" aria-hidden="true">☆</span>
             </button>
 
@@ -61,7 +87,7 @@
 
         <nav class="lb-tabs" aria-label="Ranglisten-Kategorie">
             <button type="button" class="tab-btn active-tab" data-leaderboard-mode="quiz_easy">Normal</button>
-            <button type="button" class="tab-btn" data-leaderboard-mode="quiz_hard">Schwer</button>
+            <button type="button" class="tab-btn" data-leaderboard-mode="quiz_hard">Mix</button>
             <button type="button" class="tab-btn" data-leaderboard-mode="drag">Drag &amp; Drop</button>
         </nav>
 
@@ -82,9 +108,16 @@
             <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
             <span id="lives-label-quiz" class="lives-display" aria-label="Drei Leben">❤️❤️❤️</span>
             <span class="currency-display">🪙 <span id="ingame-coins-quiz">0</span></span>
+            <span id="streak-label-quiz" class="streak-display">Serie 0</span>
+            <span id="shield-label-quiz" class="shield-display" aria-label="Keine Serien-Schilde">🛡 0</span>
             <span id="score-label" class="score-display">0</span>
         </header>
         <div id="quiz-display" class="sdg-display-box"></div>
+        <div class="quiz-tools">
+            <button type="button" id="hint-quiz-btn" class="hint-btn">Hinweis (-3 🪙)</button>
+            <span id="quiz-feedback" class="quiz-feedback" aria-live="polite"></span>
+        </div>
+        <aside id="sdg-context" class="sdg-context is-hidden" aria-live="polite"></aside>
         <div id="quiz-options" class="options-grid"></div>
     </section>
 
@@ -94,6 +127,8 @@
             <button type="button" class="back-btn" data-action="show-menu" aria-label="Zurück zum Hauptmenü">←</button>
             <span id="lives-label-drag" class="lives-display" aria-label="Drei Leben">❤️❤️❤️</span>
             <span class="currency-display">🪙 <span id="ingame-coins-drag">0</span></span>
+            <span id="streak-label-drag" class="streak-display">Serie 0</span>
+            <span id="shield-label-drag" class="shield-display" aria-label="Keine Serien-Schilde">🛡 0</span>
             <span id="score-label-drag" class="score-display">0</span>
         </header>
         <div id="drop-zones" class="drop-zone-container"></div>
@@ -110,6 +145,12 @@
             <span id="card-progress"></span>
         </header>
         <button type="button" id="main-card" class="flashcard" aria-label="Karte umdrehen"></button>
+        <div class="flashcard-rating" aria-label="Karte bewerten">
+            <p>Wie gut kanntest du dieses Ziel?</p>
+            <button type="button" id="flashcard-know-btn">Kenne ich</button>
+            <button type="button" id="flashcard-unsure-btn">Unsicher</button>
+            <button type="button" id="flashcard-review-btn">Noch mal</button>
+        </div>
         <nav class="flashcard-navigation" aria-label="Karteikarten-Navigation">
             <button type="button" id="previous-card-btn" class="option-btn flashcard-nav-btn" aria-label="Vorherige Karte">←</button>
             <button type="button" id="next-card-btn" class="option-btn flashcard-nav-btn" aria-label="Nächste Karte">→</button>
@@ -143,6 +184,7 @@
                     <span id="go-best" class="stat-value best-score">0</span>
                 </div>
             </div>
+            <p id="game-over-insight" class="game-over-insight" aria-live="polite"></p>
 
             <div class="score-submit-block">
                 <p class="section-label">Im Leaderboard eintragen</p>

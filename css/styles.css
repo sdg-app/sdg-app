@@ -140,6 +140,100 @@ input:focus-visible {
     font-size: 0.76rem;
 }
 
+.progress-panel,
+.daily-challenge {
+    margin: 0 0 18px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+
+.progress-level,
+.progress-metrics,
+.daily-challenge,
+.daily-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.progress-level {
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.progress-level span:last-child,
+.daily-progress {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.xp-track {
+    height: 6px;
+    margin: 10px 0 12px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #101820;
+}
+
+.xp-track span {
+    width: 0;
+    height: 100%;
+    display: block;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 240ms ease;
+}
+
+.progress-metrics {
+    align-items: flex-start;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+}
+
+.progress-metrics span {
+    display: grid;
+    gap: 2px;
+}
+
+.progress-metrics strong {
+    color: var(--text-white);
+    font-size: 0.88rem;
+}
+
+.daily-challenge {
+    align-items: flex-end;
+}
+
+.daily-challenge .section-label {
+    margin-bottom: 2px;
+}
+
+.daily-challenge h2 {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.daily-challenge p:not(.section-label) {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+}
+
+.daily-progress {
+    flex-direction: column;
+    align-items: flex-end;
+    color: var(--text-white);
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.daily-progress span:last-child {
+    color: var(--accent);
+}
+
 #menu-screen > nav {
     display: grid;
     gap: 11px;
@@ -262,7 +356,9 @@ input:focus-visible {
 
 .currency-display,
 .score-display,
-.lives-display {
+.lives-display,
+.streak-display,
+.shield-display {
     padding: 6px 10px;
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -280,6 +376,18 @@ input:focus-visible {
 
 .lives-display {
     letter-spacing: 1px;
+}
+
+.streak-display {
+    color: var(--accent);
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.shield-display {
+    color: #d8e3ef;
+    font-size: 0.72rem;
+    white-space: nowrap;
 }
 
 /* Ranglisten */
@@ -428,6 +536,60 @@ input:focus-visible {
 .number-option {
     font-size: 2.5rem;
     font-weight: 900;
+}
+
+.color-option {
+    min-height: 76px;
+    border-color: rgba(255, 255, 255, 0.38);
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.78rem;
+}
+
+.quiz-tools {
+    min-height: 34px;
+    margin: -4px 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.hint-btn {
+    padding: 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text-white);
+    background: var(--surface);
+    font-size: 0.72rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.hint-btn:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+}
+
+.quiz-feedback {
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+.hint-eliminated {
+    opacity: 0.28;
+    text-decoration: line-through;
+}
+
+.sdg-context {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--accent);
+    color: #d5deea;
+    background: var(--surface);
+    font-size: 0.76rem;
+    line-height: 1.45;
 }
 
 .correct {
@@ -608,6 +770,38 @@ input:focus-visible {
     gap: 12px;
 }
 
+.flashcard-rating {
+    width: min(100%, 350px);
+    margin: 14px auto 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+}
+
+.flashcard-rating p {
+    grid-column: 1 / -1;
+    margin: 0 0 2px;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    text-align: center;
+}
+
+.flashcard-rating button {
+    min-height: 38px;
+    padding: 7px 5px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-white);
+    background: var(--surface);
+    font-size: 0.68rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.flashcard-rating button:first-of-type {
+    border-color: #508e42;
+}
+
 .flashcard-nav-btn {
     width: 44%;
     min-height: 54px;
@@ -722,6 +916,13 @@ input:focus-visible {
     margin: 10px auto 0;
     color: var(--text-muted);
     font-size: 0.82rem;
+}
+
+.game-over-insight {
+    margin: -7px 0 18px;
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    text-align: center;
 }
 
 .go-stats {

@@ -17,3 +17,28 @@ test("normalizeStats migrates legacy and malformed values safely", () => {
     assert.equal(stats.username, "Test Person");
     assert.ok(stats.playerId.length >= 8);
 });
+
+test("normalizeStats keeps progression and per-goal mastery data", () => {
+    const stats = normalizeStats({
+        xp: 82,
+        bestStreak: 7,
+        mastery: {
+            6: { correct: 5, incorrect: 2, reviews: 1 },
+            99: { correct: 99 }
+        },
+        daily: { date: "2026-07-14", type: "quiz", goal: 8, progress: 3, claimed: false }
+    });
+
+    assert.equal(stats.xp, 82);
+    assert.equal(stats.bestStreak, 7);
+    assert.deepEqual(stats.mastery[6], {
+        correct: 5,
+        incorrect: 2,
+        reviews: 1,
+        correctStreak: 0,
+        seen: 0,
+        lastSeen: 0
+    });
+    assert.equal(stats.mastery[99], undefined);
+    assert.equal(stats.daily.progress, 3);
+});

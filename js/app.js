@@ -1,4 +1,4 @@
-import { SDGS, TARGETS } from "./data.js";
+import { DAILY_CHALLENGES, LEVEL_TITLES, SDGS, TARGETS } from "./data.js";
 import { loadStats, persistStats } from "./storage.js";
 import { shuffle } from "./utils.js";
 
@@ -17,6 +17,13 @@ let selectedDragNumber = null;
 let cardIndex = 0;
 let flashcardDeck = [];
 let randomFlashcards = false;
+let streak = 0;
+let currentRunBestStreak = 0;
+let runAttempts = 0;
+let runCorrect = 0;
+let activeQuizPool = SDGS;
+let hintUsed = false;
+let isFocusMode = false;
 
 function byId(id) {
     return document.getElementById(id);
@@ -48,6 +55,8 @@ function updateUIStats() {
     updateStar("star-quiz-easy", playerStats.scores.quiz_easy, TARGETS.easy);
     updateStar("star-quiz-hard", playerStats.scores.quiz_hard, TARGETS.hard);
     updateStar("star-drag", playerStats.scores.drag, TARGETS.drag);
+    updateProgressPanel();
+    updateDailyChallenge();
 }
 
 function updateStar(id, currentScore, target) {
@@ -57,8 +66,8 @@ function updateStar(id, currentScore, target) {
     star.classList.toggle("unlocked", unlocked);
 }
 
-function resetDeck() {
-    masterDeck = shuffle(SDGS);
+function resetDeck(cards = SDGS) {
+    masterDeck = shuffle(cards);
 }
 
 function drawCard() {
@@ -67,6 +76,185 @@ function drawCard() {
     }
 
     return masterDeck.pop();
+}
+
+function getTodayKey() {
+    return new Date().toLocaleDateString("en-CA");
+}
+
+function ensureDailyChallenge() {
+    const date = getTodayKey();
+    if (playerStats.daily.date === date && playerStats.daily.goal > 0) return;
+
+    const challengeIndex = [...date].reduce((total, character) => total + (Number(character) || 0), 0) % DAILY_CHALLENGES.length;
+    const challenge = DAILY_CHALLENGES[challengeIndex];
+    playerStats.daily = {
+        date,
+        type: challenge.type,
+        goal: challenge.goal,
+        progress: 0,
+        claimed: false
+    };
+}
+
+function getDailyChallenge() {
+    ensureDailyChallenge();
+    return DAILY_CHALLENGES.find(challenge => challenge.type === playerStats.daily.type) ?? DAILY_CHALLENGES[0];
+}
+
+function updateDailyProgress(type, amount = 1) {
+    const challenge = getDailyChallenge();
+    if (playerStats.daily.type !== type || playerStats.daily.claimed) return "";
+
+    playerStats.daily.progress = Math.min(playerStats.daily.goal, playerStats.daily.progress + amount);
+    if (playerStats.daily.progress < playerStats.daily.goal) return "";
+
+    playerStats.daily.claimed = true;
+    playerStats.coins += challenge.reward;
+    return `Tagesziel geschafft: +${challenge.reward} 🪙`;
+}
+
+function getLevel() {
+    return Math.floor(playerStats.xp / 40) + 1;
+}
+
+function getMastery(sdgNumber) {
+    return playerStats.mastery[sdgNumber] ?? {
+        correct: 0,
+        incorrect: 0,
+        reviews: 0,
+        correctStreak: 0,
+        seen: 0,
+        lastSeen: 0
+    };
+}
+
+function recordMastery(sdgNumber, result) {
+    const mastery = getMastery(sdgNumber);
+    if (result === "correct") {
+        mastery.correct += 1;
+        mastery.correctStreak += 1;
+    }
+    if (result === "incorrect") {
+        mastery.incorrect += 1;
+        mastery.correctStreak = 0;
+    }
+    if (result === "review") mastery.reviews += 1;
+    playerStats.mastery[sdgNumber] = mastery;
+}
+
+function markSdgSeen(sdgNumber) {
+    const mastery = getMastery(sdgNumber);
+    playerStats.questionCounter += 1;
+    mastery.seen += 1;
+    mastery.lastSeen = playerStats.questionCounter;
+    playerStats.mastery[sdgNumber] = mastery;
+}
+
+function getMasteredGoalsCount() {
+    return SDGS.filter(sdg => {
+        const mastery = getMastery(sdg.nr);
+        const attempts = mastery.correct + mastery.incorrect;
+        return mastery.correct >= 5
+            && attempts > 0
+            && mastery.correct / attempts >= 0.8
+            && mastery.correctStreak >= 2;
+    }).length;
+}
+
+function getAccuracy() {
+    const totals = SDGS.reduce((result, sdg) => {
+        const mastery = getMastery(sdg.nr);
+        return { correct: result.correct + mastery.correct, attempts: result.attempts + mastery.correct + mastery.incorrect };
+    }, { correct: 0, attempts: 0 });
+    return totals.attempts ? Math.round((totals.correct / totals.attempts) * 100) : null;
+}
+
+function getFocusCards() {
+    const ranked = [...SDGS].sort((first, second) => {
+        const firstMastery = getMastery(first.nr);
+        const secondMastery = getMastery(second.nr);
+        const firstStaleness = Math.max(0, playerStats.questionCounter - firstMastery.lastSeen);
+        const secondStaleness = Math.max(0, playerStats.questionCounter - secondMastery.lastSeen);
+        const firstPriority = firstMastery.incorrect * 4 + firstMastery.reviews * 3 - firstMastery.correct + Math.min(firstStaleness, 24) * 0.35 + (firstMastery.seen === 0 ? 3 : 0);
+        const secondPriority = secondMastery.incorrect * 4 + secondMastery.reviews * 3 - secondMastery.correct + Math.min(secondStaleness, 24) * 0.35 + (secondMastery.seen === 0 ? 3 : 0);
+        return secondPriority - firstPriority;
+    });
+
+    return ranked.slice(0, 8);
+}
+
+function updateProgressPanel() {
+    const level = getLevel();
+    const xpForCurrentLevel = playerStats.xp % 40;
+    const accuracy = getAccuracy();
+    byId("level-title").innerText = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+    byId("level-label").innerText = `Level ${level}`;
+    byId("xp-progress").style.width = `${(xpForCurrentLevel / 40) * 100}%`;
+    byId("best-streak-value").innerText = playerStats.bestStreak;
+    byId("accuracy-value").innerText = accuracy === null ? "–" : `${accuracy}%`;
+    byId("mastered-goals-value").innerText = getMasteredGoalsCount();
+}
+
+function updateDailyChallenge() {
+    const challenge = getDailyChallenge();
+    byId("daily-challenge-text").innerText = challenge.label;
+    byId("daily-progress-value").innerText = `${playerStats.daily.progress} / ${playerStats.daily.goal}`;
+    byId("daily-reward").innerText = playerStats.daily.claimed ? "Erledigt ✓" : `+${challenge.reward} 🪙`;
+}
+
+function resetRun() {
+    score = 0;
+    lives = 3;
+    streak = 0;
+    currentRunBestStreak = 0;
+    runAttempts = 0;
+    runCorrect = 0;
+    updateStreakDisplay();
+}
+
+function increaseStreak() {
+    streak += 1;
+    currentRunBestStreak = Math.max(currentRunBestStreak, streak);
+    playerStats.bestStreak = Math.max(playerStats.bestStreak, streak);
+    updateStreakDisplay();
+
+    const rewards = [];
+    if (streak > 0 && streak % 5 === 0) {
+        playerStats.coins += 2;
+        rewards.push(`Serie ${streak}: +2 🪙`);
+    }
+    if (streak > 0 && streak % 10 === 0 && playerStats.streakShields < 2) {
+        playerStats.streakShields += 1;
+        updateStreakDisplay();
+        rewards.push("Serien-Schild erhalten");
+    }
+
+    if (rewards.length) return rewards.join(" · ");
+
+    return streak >= 3 ? `Serie ${streak}` : "";
+}
+
+function breakStreak() {
+    if (streak > 0 && playerStats.streakShields > 0) {
+        playerStats.streakShields -= 1;
+        updateStreakDisplay();
+        return "Serien-Schild hat deine Serie geschützt.";
+    }
+
+    streak = 0;
+    updateStreakDisplay();
+    return "";
+}
+
+function updateStreakDisplay() {
+    ["streak-label-quiz", "streak-label-drag"].forEach(id => {
+        byId(id).innerText = streak ? `Serie ${streak}` : "Serie 0";
+    });
+    ["shield-label-quiz", "shield-label-drag"].forEach(id => {
+        byId(id).innerText = `🛡 ${playerStats.streakShields}`;
+        byId(id).setAttribute("aria-label", `${playerStats.streakShields} Serien-Schilde`);
+    });
 }
 
 function getImgUrl(number) {
@@ -111,23 +299,64 @@ function switchLeaderboardTab(mode, button) {
     }
 }
 
-function startQuiz(optionCount) {
+function startQuiz(optionCount, mode = "normal") {
     quizOptionCount = optionCount;
     currentModeKey = optionCount > 4 ? "quiz_hard" : "quiz_easy";
-    score = 0;
-    lives = 3;
-    resetDeck();
+    isFocusMode = mode === "focus";
+    activeQuizPool = isFocusMode ? getFocusCards() : SDGS;
+    resetRun();
+    resetDeck(activeQuizPool);
+    hintUsed = false;
     byId("score-label").innerText = score;
     updateLivesDisplay();
     showScreen("quiz-screen");
     nextQuizQuestion();
 }
 
+function getDynamicOptionCount() {
+    if (isFocusMode) return Math.min(5, 4 + Math.floor(streak / 6));
+    if (quizOptionCount > 4) return 6;
+    return Math.min(6, 4 + Math.floor(streak / 4));
+}
+
+function getQuestionMode() {
+    if (isFocusMode) {
+        const focusModes = streak >= 4 ? [0, 2, 4] : [0, 2];
+        return focusModes[Math.floor(Math.random() * focusModes.length)];
+    }
+
+    if (quizOptionCount === 4) {
+        const normalModes = streak >= 6 ? [0, 2, 4] : streak >= 3 ? [0, 2] : [0];
+        return normalModes[Math.floor(Math.random() * normalModes.length)];
+    }
+
+    const challengeModes = streak >= 5 ? [1, 2, 3, 4, 5] : [1, 2, 3];
+    return challengeModes[Math.floor(Math.random() * challengeModes.length)];
+}
+
+function showSdgContext(sdg, isCorrect) {
+    const context = byId("sdg-context");
+    context.classList.remove("is-hidden");
+    context.innerText = `${isCorrect ? "Richtig" : "Die richtige Antwort"}: SDG ${sdg.nr} – ${sdg.titel}. ${sdg.info}`;
+}
+
+function hideSdgContext() {
+    const context = byId("sdg-context");
+    context.classList.add("is-hidden");
+    context.innerText = "";
+}
+
 function nextQuizQuestion() {
     currentSdg = drawCard();
     const display = byId("quiz-display");
     const grid = byId("quiz-options");
-    const questionMode = quizOptionCount > 4 ? Math.floor(Math.random() * 3) + 1 : 0;
+    const questionMode = getQuestionMode();
+    const optionCount = getDynamicOptionCount();
+    hintUsed = false;
+    byId("hint-quiz-btn").disabled = false;
+    byId("quiz-feedback").innerText = "";
+    hideSdgContext();
+    markSdgSeen(currentSdg.nr);
 
     display.style.background = "var(--card-bg)";
     display.style.color = "white";
@@ -145,6 +374,18 @@ function nextQuizQuestion() {
     } else if (questionMode === 2) {
         display.style.background = "#555";
         display.innerText = currentSdg.nr;
+    } else if (questionMode === 3) {
+        display.style.background = "#222";
+        display.style.fontSize = "24px";
+        display.style.padding = "20px";
+        display.style.textAlign = "center";
+        display.innerText = currentSdg.titel;
+    } else if (questionMode === 4) {
+        display.style.background = "white";
+        const image = document.createElement("img");
+        image.src = getImgUrl(currentSdg.nr);
+        image.alt = `Symbol für SDG ${currentSdg.nr}`;
+        display.appendChild(image);
     } else {
         display.style.background = "#222";
         display.style.fontSize = "24px";
@@ -154,7 +395,7 @@ function nextQuizQuestion() {
     }
 
     const options = [currentSdg];
-    while (options.length < quizOptionCount) {
+    while (options.length < optionCount) {
         const candidate = SDGS[Math.floor(Math.random() * SDGS.length)];
         if (!options.some(option => option.nr === candidate.nr)) {
             options.push(candidate);
@@ -172,6 +413,10 @@ function nextQuizQuestion() {
             button.innerText = option.nr;
             button.style.backgroundColor = option.farbe;
             button.classList.add("number-option");
+        } else if (questionMode === 5) {
+            button.innerText = "Farbe";
+            button.style.backgroundColor = option.farbe;
+            button.classList.add("color-option");
         } else {
             button.innerText = option.titel;
         }
@@ -190,16 +435,30 @@ function handleQuizAnswer(option, button, questionMode, grid) {
         button.classList.add("correct");
         score += 1;
         playerStats.coins += 1;
+        playerStats.xp += 10;
+        runAttempts += 1;
+        runCorrect += 1;
+        recordMastery(currentSdg.nr, "correct");
+        const streakMessage = increaseStreak();
+        const dailyMessage = updateDailyProgress("quiz");
         saveStats();
         byId("score-label").innerText = score;
-        schedule(nextQuizQuestion, 900);
+        byId("quiz-feedback").innerText = [streakMessage, dailyMessage].filter(Boolean).join(" · ");
+        showSdgContext(currentSdg, true);
+        schedule(nextQuizQuestion, 1500);
         return;
     }
 
-    lives -= 1;
+    runAttempts += 1;
+    recordMastery(currentSdg.nr, "incorrect");
+    const shieldMessage = breakStreak();
+    saveStats();
+    if (!shieldMessage) lives -= 1;
     updateLivesDisplay();
     button.disabled = true;
     button.classList.add("wrong");
+    byId("quiz-feedback").innerText = shieldMessage;
+    showSdgContext(currentSdg, false);
 
     if (lives <= 0) {
         const correctButton = allButtons.find(optionButton => Number(optionButton.dataset.nr) === currentSdg.nr);
@@ -209,10 +468,30 @@ function handleQuizAnswer(option, button, questionMode, grid) {
     }
 }
 
+function useQuizHint() {
+    if (hintUsed || !currentSdg) return;
+    if (playerStats.coins < 3) {
+        byId("quiz-feedback").innerText = "Du brauchst 3 Coins für einen Hinweis.";
+        return;
+    }
+
+    const wrongOptions = [...byId("quiz-options").querySelectorAll("button")]
+        .filter(button => Number(button.dataset.nr) !== currentSdg.nr && !button.disabled);
+    if (!wrongOptions.length) return;
+
+    const option = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+    option.disabled = true;
+    option.classList.add("hint-eliminated");
+    playerStats.coins -= 3;
+    hintUsed = true;
+    byId("hint-quiz-btn").disabled = true;
+    byId("quiz-feedback").innerText = "Ein falscher Begriff wurde entfernt.";
+    saveStats();
+}
+
 function startDragDrop() {
     currentModeKey = "drag";
-    score = 0;
-    lives = 3;
+    resetRun();
     resetDeck();
     byId("score-label-drag").innerText = score;
     updateLivesDisplay();
@@ -223,6 +502,7 @@ function startDragDrop() {
 function loadDragRound() {
     selectedDragNumber = null;
     currentDragData = Array.from({ length: 4 }, () => drawCard());
+    currentDragData.forEach(sdg => markSdgSeen(sdg.nr));
     const zones = byId("drop-zones");
     const pool = byId("drag-pool");
     zones.replaceChildren();
@@ -231,6 +511,7 @@ function loadDragRound() {
     byId("check-drag-btn").style.display = "block";
     byId("check-drag-btn").disabled = false;
     byId("next-drag-btn").style.display = "none";
+    byId("drag-instructions").innerText = "Wähle eine Zahl aus und anschließend das passende Ziel.";
 
     currentDragData.forEach((sdg, index) => {
         const zone = document.createElement("div");
@@ -347,6 +628,13 @@ function checkDragAssignments() {
         const zone = byId(`zone-${index}`);
         const correct = zone.dataset.occupiedBy === zone.dataset.correctNr;
         zone.classList.add(correct ? "correct" : "wrong");
+        runAttempts += 1;
+        if (correct) {
+            runCorrect += 1;
+            recordMastery(sdg.nr, "correct");
+        } else {
+            recordMastery(sdg.nr, "incorrect");
+        }
         if (!correct) {
             zone.classList.add("shake-it");
             errors += 1;
@@ -354,17 +642,24 @@ function checkDragAssignments() {
     });
 
     if (errors === 0) {
-        score += 4;
-        playerStats.coins += 2;
+        score += 5;
+        playerStats.coins += 3;
+        playerStats.xp += 35;
+        const streakMessage = increaseStreak();
+        const dailyMessage = updateDailyProgress("drag");
         saveStats();
         byId("score-label-drag").innerText = score;
+        byId("drag-instructions").innerText = ["Perfekte Runde: +5 Punkte", streakMessage, dailyMessage].filter(Boolean).join(" · ");
         byId("check-drag-btn").style.display = "none";
         byId("next-drag-btn").style.display = "block";
         return;
     }
 
-    lives -= 1;
+    const shieldMessage = breakStreak();
+    if (!shieldMessage) lives -= 1;
+    saveStats();
     updateLivesDisplay();
+    byId("drag-instructions").innerText = shieldMessage || "Nicht ganz – die Runde wird neu gemischt.";
     byId("check-drag-btn").disabled = true;
     schedule(() => {
         if (lives <= 0) finishGame();
@@ -381,6 +676,8 @@ function finishGame() {
 
     byId("go-score").innerText = score;
     byId("go-best").innerText = playerStats.scores[currentModeKey];
+    const runAccuracy = runAttempts ? Math.round((runCorrect / runAttempts) * 100) : 0;
+    byId("game-over-insight").innerText = `Trefferquote: ${runAccuracy}% · Beste Serie: ${currentRunBestStreak} · ${getMasteredGoalsCount()} Ziele sicher`;
     byId("player-name").value = playerStats.username;
     byId("submit-container").style.display = "flex";
     byId("submit-message").style.display = "none";
@@ -477,6 +774,7 @@ function startFlashcards(random) {
 
 function renderCardFront() {
     const sdg = flashcardDeck[cardIndex];
+    markSdgSeen(sdg.nr);
     const card = byId("main-card");
     card.style.background = sdg.farbe;
     card.replaceChildren();
@@ -503,6 +801,27 @@ function renderCardBack() {
 function flipCard() {
     if (byId("main-card").dataset.side === "front") renderCardBack();
     else renderCardFront();
+}
+
+function rateFlashcard(rating) {
+    const sdg = flashcardDeck[cardIndex];
+    if (!sdg) return;
+
+    if (rating === "know") {
+        recordMastery(sdg.nr, "correct");
+        playerStats.xp += 4;
+    } else {
+        recordMastery(sdg.nr, "review");
+        if (rating === "unsure") recordMastery(sdg.nr, "incorrect");
+        if (rating === "review") {
+            const reviewIndex = Math.min(cardIndex + 3, flashcardDeck.length);
+            flashcardDeck.splice(reviewIndex, 0, sdg);
+        }
+    }
+
+    updateDailyProgress("flashcards");
+    saveStats();
+    nextCard();
 }
 
 function nextCard() {
@@ -544,6 +863,7 @@ function registerEventListeners() {
     byId("open-leaderboard-btn").addEventListener("click", openGlobalLeaderboard);
     byId("start-quiz-easy-btn").addEventListener("click", () => startQuiz(4));
     byId("start-quiz-hard-btn").addEventListener("click", () => startQuiz(6));
+    byId("start-focus-btn").addEventListener("click", () => startQuiz(4, "focus"));
     byId("start-drag-btn").addEventListener("click", startDragDrop);
     byId("start-flashcards-btn").addEventListener("click", () => startFlashcards(false));
     byId("start-random-flashcards-btn").addEventListener("click", () => startFlashcards(true));
@@ -554,6 +874,7 @@ function registerEventListeners() {
     });
     byId("check-drag-btn").addEventListener("click", checkDragAssignments);
     byId("next-drag-btn").addEventListener("click", loadDragRound);
+    byId("hint-quiz-btn").addEventListener("click", useQuizHint);
     byId("drag-pool").addEventListener("dragover", event => event.preventDefault());
     byId("drag-pool").addEventListener("drop", event => {
         event.preventDefault();
@@ -565,6 +886,9 @@ function registerEventListeners() {
         moveDragItemToPool(String(selectedDragNumber), item?.dataset.color ?? "#555");
     });
     byId("main-card").addEventListener("click", flipCard);
+    byId("flashcard-know-btn").addEventListener("click", () => rateFlashcard("know"));
+    byId("flashcard-unsure-btn").addEventListener("click", () => rateFlashcard("unsure"));
+    byId("flashcard-review-btn").addEventListener("click", () => rateFlashcard("review"));
     byId("previous-card-btn").addEventListener("click", previousCard);
     byId("next-card-btn").addEventListener("click", nextCard);
     byId("submit-container").addEventListener("submit", submitScore);
@@ -580,4 +904,6 @@ function registerEventListeners() {
 }
 
 registerEventListeners();
+ensureDailyChallenge();
+persistStats(playerStats);
 updateUIStats();
